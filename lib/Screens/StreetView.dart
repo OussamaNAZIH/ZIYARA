@@ -14,10 +14,10 @@ class StreetViewScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Street View'),
       ),
-      body: WebView(
-        initialUrl: streetViewUrl,
-        javascriptMode: JavascriptMode.unrestricted,
-      ),
+      // body: WebView(
+      //   initialUrl: streetViewUrl,
+      //   javascriptMode: JavascriptMode.unrestricted,
+      // ),
     );
   }
 }

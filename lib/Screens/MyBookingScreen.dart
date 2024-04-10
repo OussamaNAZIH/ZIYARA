@@ -21,6 +21,12 @@ class MyBookingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: const Center(
+              child: Text('My booking', style: TextStyle(fontSize: 22))),
+        ),
         body: Container(
             child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -146,3 +152,106 @@ class MyBookingScreen extends StatelessWidget {
                 ))));
   }
 }
+
+// import 'dart:convert';
+// import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
+
+// class MyBookingScreen extends StatelessWidget {
+//   int? startday;
+//   int? startmonth;
+//   int? endday;
+//   int? endmonth;
+//   dynamic dataList;
+//   MyBookingScreen(
+//       {super.key,
+//       required this.dataList,
+//       required this.startday,
+//       required this.startmonth,
+//       required this.endday,
+//       required this.endmonth});
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Booking App',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//       ),
+//       home: const BookingHistoryPage(),
+//     );
+//   }
+// }
+
+// class BookedHotel {
+//   final String name;
+//   final String location;
+//   final DateTime checkInDate;
+//   final DateTime checkOutDate;
+
+//   BookedHotel({
+//     required this.name,
+//     required this.location,
+//     required this.checkInDate,
+//     required this.checkOutDate,
+//   });
+// }
+
+// class BookingHistoryPage extends StatefulWidget {
+//   const BookingHistoryPage({super.key});
+
+//   @override
+//   _BookingHistoryPageState createState() => _BookingHistoryPageState();
+// }
+
+// class _BookingHistoryPageState extends State<BookingHistoryPage> {
+//   late List<BookedHotel> bookedHotels;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchBookedHotels();
+//   }
+
+//   Future<void> fetchBookedHotels() async {
+//     final response = await http.get(Uri.parse('https://example.com/bookings'));
+//     if (response.statusCode == 200) {
+//       final List<dynamic> responseData = jsonDecode(response.body);
+//       setState(() {
+//         bookedHotels = responseData
+//             .map((data) => BookedHotel(
+//                   name: data['name'],
+//                   location: data['location'],
+//                   checkInDate: DateTime.parse(data['checkInDate']),
+//                   checkOutDate: DateTime.parse(data['checkOutDate']),
+//                 ))
+//             .toList();
+//       });
+//     } else {
+//       throw Exception('Failed to load booked hotels');
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('Historique de réservation'),
+//       ),
+//       body: bookedHotels != null
+//           ? ListView.builder(
+//               itemCount: bookedHotels.length,
+//               itemBuilder: (context, index) {
+//                 final bookedHotel = bookedHotels[index];
+//                 return ListTile(
+//                   title: Text(bookedHotel.name),
+//                   subtitle: Text(
+//                       '${bookedHotel.location}\n${bookedHotel.checkInDate.toString()} - ${bookedHotel.checkOutDate.toString()}'),
+//                 );
+//               },
+//             )
+//           : const Center(
+//               child: CircularProgressIndicator(),
+//             ),
+//     );
+//   }
+// }

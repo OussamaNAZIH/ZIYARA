@@ -1,24 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_pfe/Moduls/SplashScreen.dart';
-import 'package:flutter_pfe/Screens/Rooms.dart';
-import 'package:flutter_pfe/Screens/Formilyass.dart';
-import 'package:flutter_pfe/Screens/Home.dart';
-import 'package:flutter_pfe/Screens/Login.dart';
-import 'package:flutter_pfe/Screens/MapsScreen.dart';
-import 'package:flutter_pfe/Screens/Registration.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
-import 'package:flutter_pfe/Screens/VerificationCode.dart';
-import 'package:flutter_pfe/Screens/auth.dart';
-import 'package:flutter_pfe/Setting/FormeDetail.dart';
+import 'package:flutter_pfe/firebase_options.dart';
 import 'package:flutter_pfe/generated/l10n.dart';
-import 'package:flutter_pfe/views/details_Screen.dart';
-import 'package:flutter_pfe/views/home_screen.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
 
 // void main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +21,7 @@ import 'package:get/get.dart';
 // }
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 

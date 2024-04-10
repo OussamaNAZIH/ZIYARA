@@ -13,21 +13,33 @@ class Registration extends StatefulWidget {
 }
 
 class _RegistrationState extends State<Registration> {
-  addData() async {
-    CollectionReference Userref =
-        FirebaseFirestore.instance.collection("Users");
-    Userref.add({
-      "UserName": _userController.text.trim(),
-      "Usergmail": _mailController.text.trim()
-    });
-      @override
-  void setState(VoidCallback fn) {
-    addData();
-    super.setState(fn);
-  }
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  addUser() async {
+    try {
+      DocumentReference reponse = await users.add({
+        "userid": "",
+        "username": _userController.text.trim(),
+        "usergmail": _mailController.text.trim(),
+        "userprofile": ""
+      });
+    } catch (e) {
+      print("Error $e");
+    }
   }
 
-
+  // addData() async {
+  //   CollectionReference Userref =
+  //       FirebaseFirestore.instance.collection("users");
+  //   Userref.add({
+  //     "UserName": _userController.text.trim(),
+  //     "Usergmail": _mailController.text.trim()
+  //   });
+  //     @override
+  // void setState(VoidCallback fn) {
+  //   addData();
+  //   super.setState(fn);
+  // }
+  // }
 
   String email = "", password = "", username = "";
   final _userController = TextEditingController();
@@ -64,6 +76,23 @@ class _RegistrationState extends State<Registration> {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
+        addUser();
+        // addData() async {
+        //   CollectionReference Userref =
+        //       FirebaseFirestore.instance.collection("users");
+        //   Userref.add({
+        //     "userid": "",
+        //     "username": _userController.text.trim(),
+        //     "usergmail": _mailController.text.trim(),
+        //     "userprofile": "",
+        //   });
+        //   @override
+        //   void setState(VoidCallback fn) {
+        //     addData();
+        //     super.setState(fn);
+        //   }
+        // }
+
         showModalBottomSheet(
             isScrollControlled: true,
             context: context,
@@ -126,7 +155,7 @@ class _RegistrationState extends State<Registration> {
                                   ),
                                   child: TextButton(
                                       onPressed: () {
-                                        Navigator.push(
+                                        Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
@@ -167,321 +196,319 @@ class _RegistrationState extends State<Registration> {
   bool _obscureText = true;
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formkey,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(
-                      height: 30,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formkey,
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  const Text(
+                    'Create Account',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        color: Colors.black),
+                  ),
+                  Text(
+                    'Start learning with create your account',
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Text(
+                    'Username',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[50],
                     ),
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 25,
-                          color: Colors.black),
+                    child: TextFormField(
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter Name';
+                        }
+                        return null;
+                      },
+                      controller: _userController,
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          prefixIcon: Icon(
+                            Icons.person_2_outlined,
+                            color: _userTextFieldEmpty
+                                ? Colors.grey[400]
+                                : const Color(0xFF06B3C4),
+                          ),
+                          hintText: 'Username',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                          )),
                     ),
-                    Text(
-                      'Start learning with create your account',
+                  ),
+                  const SizedBox(
+                    height: 25,
+                  ),
+                  const Text(
+                    'Email',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[50],
+                    ),
+                    child: TextFormField(
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter Email';
+                        }
+                        return null;
+                      },
+                      controller: _mailController,
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: _mailTextFieldEmpty
+                                ? Colors.grey[400]
+                                : const Color(0xFF06B3C4),
+                          ),
+                          hintText: 'Enter your email',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                          )),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 25,
+                  ),
+                  const Text(
+                    'Password',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[50],
+                    ),
+                    child: TextFormField(
+                      controller: _paswordController,
+                      obscureText: _obscureText,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter Password';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                          ),
+                          border: InputBorder.none,
+                          prefixIcon: Icon(
+                            Icons.password,
+                            color: _passTextFieldEmpty
+                                ? Colors.grey[400]
+                                : const Color(0xFF06B3C4),
+                          ),
+                          hintText: 'Create your password',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                          )),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (_formkey.currentState!.validate()) {
+                          setState(() {
+                            email = _mailController.text;
+                            username = _userController.text;
+                            password = _paswordController.text;
+                          });
+                        }
+                        resgister();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          color: const Color(0xFF06B3C4),
+                        ),
+                        child: const Center(
+                            child: Text('Create Account',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Center(
+                    child: Text(
+                      'Or using other method',
                       style: TextStyle(color: Colors.grey[500]),
                     ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    const Text(
-                      'Username',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey[50],
-                      ),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Name';
-                          }
-                          return null;
-                        },
-                        controller: _userController,
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            prefixIcon: Icon(
-                              Icons.person_2_outlined,
-                              color: _userTextFieldEmpty
-                                  ? Colors.grey[400]
-                                  : const Color(0xFF06B3C4),
-                            ),
-                            hintText: 'Username',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[500],
-                            )),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    const Text(
-                      'Email',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey[50],
-                      ),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Email';
-                          }
-                          return null;
-                        },
-                        controller: _mailController,
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            prefixIcon: Icon(
-                              Icons.email_outlined,
-                              color: _mailTextFieldEmpty
-                                  ? Colors.grey[400]
-                                  : const Color(0xFF06B3C4),
-                            ),
-                            hintText: 'Enter your email',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[500],
-                            )),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    const Text(
-                      'Password',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey[50],
-                      ),
-                      child: TextFormField(
-                        controller: _paswordController,
-                        obscureText: _obscureText,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Password';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureText
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            ),
-                            border: InputBorder.none,
-                            prefixIcon: Icon(
-                              Icons.password,
-                              color: _passTextFieldEmpty
-                                  ? Colors.grey[400]
-                                  : const Color(0xFF06B3C4),
-                            ),
-                            hintText: 'Create your password',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[500],
-                            )),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 1),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (_formkey.currentState!.validate()) {
-                            setState(() {
-                              email = _mailController.text;
-                              username = _userController.text;
-                              password = _paswordController.text;
-                            });
-                          }
-                          resgister();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            color: const Color(0xFF06B3C4),
-                          ),
-                          child: const Center(
-                              child: Text('Create Account',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ))),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Center(
-                      child: Text(
-                        'Or using other method',
-                        style: TextStyle(color: Colors.grey[500]),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
 
-                    InkWell(
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.network(
-                              'http://pngimg.com/uploads/google/google_PNG19635.png',
-                              height: 60,
-                              width: 60,
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Image.network(
-                              'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
-                              height: 40,
-                              width: 40,
-                            ),
-                          ]),
-                    ),
-
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Container(
-                      child: Row(
+                  InkWell(
+                    child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Already have an account? ',
-                            style: TextStyle(color: Colors.grey[500]),
+                          Image.network(
+                            'http://pngimg.com/uploads/google/google_PNG19635.png',
+                            height: 60,
+                            width: 60,
                           ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const Login()));
-                            },
-                            child: const Text(
-                              'Login',
-                              style: TextStyle(
-                                  color: Color(0xFF06B3C4),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-                    // Padding(
-                    //   padding: EdgeInsets.symmetric(horizontal: 15),
-                    //   child: InkWell(
-                    //     onTap: () {},
-                    //     child: Container(
-                    //       decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(18),
-                    //           color: Colors.white),
-                    //       child: Row(
-                    //         mainAxisAlignment: MainAxisAlignment.center,
-                    //         children: [
-                    //           Image.network(
-                    //             'http://pngimg.com/uploads/google/google_PNG19635.png',
-                    //             height: 40,
-                    //             width: 40,
-                    //           ),
-                    //           Text(
-                    //             'Sign Up with Google',
-                    //             style: TextStyle(
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 18,
-                    //               color: Colors.black,
-                    //             ),
-                    //           )
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // SizedBox(
-                    //   height: 25,
-                    // ),
-                    // Padding(
-                    //   padding: EdgeInsets.symmetric(horizontal: 15),
-                    //   child: InkWell(
-                    //     onTap: () {},
-                    //     child: Container(
-                    //       decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(18),
-                    //           color: Colors.white),
-                    //       child: Row(
-                    //         mainAxisAlignment: MainAxisAlignment.center,
-                    //         children: [
-                    //           Image.network(
-                    //             'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
-                    //             height: 30,
-                    //             width: 30,
-                    //           ),
-                    //           Text(
-                    //             ' Sign Up with Facebook',
-                    //             style: TextStyle(
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 18,
-                    //               color: Colors.black,
-                    //             ),
-                    //           )
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                  ]),
-            ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Image.network(
+                            'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
+                            height: 40,
+                            width: 40,
+                          ),
+                        ]),
+                  ),
+
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an account? ',
+                          style: TextStyle(color: Colors.grey[500]),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Login()));
+                          },
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(
+                                color: Color(0xFF06B3C4),
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                  // Padding(
+                  //   padding: EdgeInsets.symmetric(horizontal: 15),
+                  //   child: InkWell(
+                  //     onTap: () {},
+                  //     child: Container(
+                  //       decoration: BoxDecoration(
+                  //           borderRadius: BorderRadius.circular(18),
+                  //           color: Colors.white),
+                  //       child: Row(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         children: [
+                  //           Image.network(
+                  //             'http://pngimg.com/uploads/google/google_PNG19635.png',
+                  //             height: 40,
+                  //             width: 40,
+                  //           ),
+                  //           Text(
+                  //             'Sign Up with Google',
+                  //             style: TextStyle(
+                  //               fontWeight: FontWeight.bold,
+                  //               fontSize: 18,
+                  //               color: Colors.black,
+                  //             ),
+                  //           )
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // SizedBox(
+                  //   height: 25,
+                  // ),
+                  // Padding(
+                  //   padding: EdgeInsets.symmetric(horizontal: 15),
+                  //   child: InkWell(
+                  //     onTap: () {},
+                  //     child: Container(
+                  //       decoration: BoxDecoration(
+                  //           borderRadius: BorderRadius.circular(18),
+                  //           color: Colors.white),
+                  //       child: Row(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         children: [
+                  //           Image.network(
+                  //             'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
+                  //             height: 30,
+                  //             width: 30,
+                  //           ),
+                  //           Text(
+                  //             ' Sign Up with Facebook',
+                  //             style: TextStyle(
+                  //               fontWeight: FontWeight.bold,
+                  //               fontSize: 18,
+                  //               color: Colors.black,
+                  //             ),
+                  //           )
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                ]),
           ),
         ),
       ),

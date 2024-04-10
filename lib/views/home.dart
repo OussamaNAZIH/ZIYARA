@@ -18,27 +18,80 @@ class SearchScreen extends StatelessWidget {
       required this.endday,
       required this.endmonth});
 
+  int selectedRating = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        // appBar: AppBar(
+        //   leading: IconButton(
+        //     icon: const Icon(Icons.arrow_back),
+        //     onPressed: () {
+        //       Navigator.of(context).pop();
+        //     },
+        //   ),
+        //   title: Container(
+        //     decoration: BoxDecoration(
+        //       color: Colors.grey[100],
+        //       borderRadius: BorderRadius.circular(10),
+        //     ),
+        //     child: TextField(
+        //       decoration: InputDecoration(
+        //         border: InputBorder.none,
+        //         hintText: 'Recherche...',
+        //         prefixIcon: GestureDetector(
+        //           // Ajout d'un GestureDetector autour de l'icône de recherche
+        //           onTap: () {
+        //             // Action à effectuer lorsqu'on clique sur l'icône de recherche
+        //             GetBuilder<HomeController>(
+        //               builder: (controller) => IconButton(
+        //                 icon: const Icon(Icons.search),
+        //                 color: Colors.red,
+        //                 onPressed: () {
+        //                   controller
+        //                       .initialData(controller.DestinationController);
+        //                   controller.update();
+        //                   // Action lorsqu'on clique sur le bouton de recherche
+        //                 },
+        //               ),
+        //             );
+        //           },
+        //           child: const Icon(Icons.search),
+        //         ),
+        //         suffixIcon: InkWell(
+        //           onTap: () {
+        //             // Action à effectuer lorsqu'on clique sur l'icône de filtrage
+        //           },
+        //           child: const Icon(Icons.filter_list),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          title: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: const Color.fromARGB(255, 255, 255, 255),
-              ),
-              child: GetBuilder<HomeController>(
-                init: HomeController(),
-                builder: (controller) => TextField(
+          title: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[100],
+            ),
+            child: GetBuilder<HomeController>(
+              init: HomeController(),
+              builder: (controller) => Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: TextField(
                   controller: controller.DestinationController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: '  Enter destination',
-                      hintStyle: TextStyle(
+                      suffixIcon: InkWell(
+                        onTap: () {
+                          showFilterModal(context);
+                        },
+                        child: const Icon(Icons.filter_list),
+                      ),
+                      hintText: 'Enter destination',
+                      hintStyle: const TextStyle(
                         color: Colors.grey,
                       )
                       // Ajout de la bordure
@@ -110,7 +163,7 @@ class SearchScreen extends StatelessWidget {
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
                                   child: Image.network(
-                                    '${controller.data[i]['Photos']['Photo3']}',
+                                    '${controller.data[i]['photos']['photo3']}',
                                   ),
                                 ),
                               ]),
@@ -122,7 +175,7 @@ class SearchScreen extends StatelessWidget {
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                        "⭐${controller.data[i]['Ritting']} (${controller.data[i]['reviews']})"),
+                                        "⭐${controller.data[i]['rating']} (${controller.data[i]['reviews']})"),
                                   ),
                                 ],
                               ),
@@ -130,7 +183,7 @@ class SearchScreen extends StatelessWidget {
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 12),
                                 child: Text(
-                                  "${controller.data[i]['Title']}",
+                                  "${controller.data[i]['title']}",
                                   style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w900),
@@ -141,7 +194,7 @@ class SearchScreen extends StatelessWidget {
                                     const EdgeInsets.symmetric(horizontal: 12),
                                 child: Flexible(
                                   child: Text(
-                                    "${controller.data[i]['Adresse']}",
+                                    "${controller.data[i]['adresse']}",
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.grey[500],
@@ -156,7 +209,7 @@ class SearchScreen extends StatelessWidget {
                                 child: Row(
                                   children: [
                                     Text(
-                                      "\$${controller.data[i]['price'] - (controller.data[i]['price'] * (controller.data[i]['discount']) / 100)}",
+"\$${(controller.data[i]['price'] - (controller.data[i]['price'] * (controller.data[i]['discount']) / 100)).round()}",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 20,
@@ -186,4 +239,125 @@ class SearchScreen extends StatelessWidget {
           ),
         ));
   }
+}
+
+void showFilterModal(BuildContext context) {
+  int minPrice = 0;
+  int maxPrice = 1000;
+
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Price',
+                      style: TextStyle(
+                          fontSize: 18.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '\$$minPrice - \$$maxPrice',
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8.0),
+                RangeSlider(
+                  values: RangeValues(minPrice.toDouble(), maxPrice.toDouble()),
+                  min: 0,
+                  max: 1000,
+                  divisions: 20,
+                  // labels: RangeLabels('\$$minPrice', '\$$maxPrice'),
+                  onChanged: (RangeValues values) {
+                    setState(() {
+                      minPrice = values.start.toInt();
+                      maxPrice = values.end.toInt();
+                    });
+                  },
+                  activeColor: const Color(0xFF06B3C4),
+                  inactiveColor: Colors.grey,
+                  onChangeStart: (RangeValues values) {
+                    // Ne rien faire lors du début du changement de la valeur
+                  },
+                  onChangeEnd: (RangeValues values) {
+                    // Ne rien faire à la fin du changement de la valeur
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                const Text(
+                  'Ratings',
+                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      _buildRatingContainer(5),
+                      const Spacer(),
+                      _buildRatingContainer(4),
+                      const Spacer(),
+                      _buildRatingContainer(3),
+                      const Spacer(),
+                      _buildRatingContainer(2),
+                      const Spacer(),
+                      _buildRatingContainer(1),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _buildRatingContainer(int rating) {
+  final selectedRating = RxInt(0);
+
+  return GestureDetector(
+    onTap: () {
+      if (selectedRating.value == rating) {
+        selectedRating.value = 0; // Déselectionne si déjà sélectionné
+      } else {
+        selectedRating.value = rating;
+      }
+      print(selectedRating);
+    },
+    child: Obx(() => Container(
+          width: 60,
+          height: 40,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selectedRating.value == rating
+                  ? const Color(0xFF06B3C4)
+                  : Colors.grey,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Center(
+            child: Text(
+              '⭐ $rating',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: selectedRating.value == rating
+                    ? const Color(0xFF06B3C4)
+                    : Colors.black,
+              ),
+            ),
+          ),
+        )),
+  );
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pfe/Moduls/Components/page_popView.dart';
 import 'package:flutter_pfe/Widgets/Common_button.dart';
-import 'package:flutter_pfe/generated/l10n.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

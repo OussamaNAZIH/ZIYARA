@@ -56,7 +56,7 @@ class DetailsScreen extends StatelessWidget {
         ),
         title: const Center(
           child: Text(
-            "",
+            "Detail Hotel",
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
         ),
@@ -72,32 +72,41 @@ class DetailsScreen extends StatelessWidget {
                     Column(
                       children: [
                         Container(
-                            height: 270,
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: 3,
-                                itemBuilder: ((context, int i) {
-                                  return Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(15),
-                                        child: ColorFiltered(
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.black.withOpacity(0.2),
-                                            BlendMode.srcATop,
-                                          ),
-                                          child: Center(
-                                            child: Image.network(
-                                              dataList['Photos']['Photo3'],
-                                              // width: 360,
+                          height: 260,
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          child: dataList['photos'] != null
+                              ? ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: 3,
+                                  itemBuilder: (context, int index) {
+                                    return Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          child: ColorFiltered(
+                                            colorFilter: ColorFilter.mode(
+                                              Colors.black.withOpacity(0.3),
+                                              BlendMode.srcATop,
+                                            ),
+                                            child: Center(
+                                              child: Image.network(
+                                                dataList['photos']['photo3'],
+                                                fit: BoxFit.cover,
+                                                width: MediaQuery.of(context)
+                                                    .size
+                                                    .width,
+                                                // width: 360,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                })))
+                                        )
+                                      ],
+                                    );
+                                  })
+                              : const Center(
+                                  child: Text('No photos available')),
+                        )
                       ],
                     ),
                     Positioned(
@@ -110,7 +119,7 @@ class DetailsScreen extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              "${dataList['Title']}",
+                              "${dataList['title']}",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -127,7 +136,7 @@ class DetailsScreen extends StatelessWidget {
                                   color: Color.fromARGB(255, 255, 255, 255),
                                 ),
                                 Text(
-                                  "${dataList['Adresse']}",
+                                  "${dataList['adresse']}",
                                   style: const TextStyle(color: Colors.white),
                                 ),
                               ],
@@ -248,7 +257,7 @@ class DetailsScreen extends StatelessWidget {
                                     color: Color(0xFF06B3C4),
                                   ),
                                   Text(
-                                    "${dataList['Adresse']}",
+                                    "${dataList['adresse']}",
                                     style: const TextStyle(
                                         color:
                                             Color.fromARGB(255, 137, 134, 134)),
@@ -336,9 +345,13 @@ class DetailsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Text(
-                    '\$24.00',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Text(
+                      '\$24.00',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
                   ),
                   const Spacer(),
                   InkWell(

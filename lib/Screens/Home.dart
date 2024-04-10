@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pfe/Screens/Login.dart';
 import 'package:flutter_pfe/Moduls/SplashScreen.dart';
 import 'package:flutter_pfe/Setting/setting.dart';
 import 'package:flutter_pfe/controllers/home_controlle.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
 import 'package:flutter_pfe/views/home.dart';
-import 'package:flutter_pfe/views/home_screen.dart';
 import 'package:get/get.dart';
 
 class Home extends StatefulWidget {
@@ -20,7 +18,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List hotels = [];
   CollectionReference Hotelref =
-      FirebaseFirestore.instance.collection("Hotels");
+      FirebaseFirestore.instance.collection("hotels");
   getData() async {
     var responsebody = await Hotelref.get();
     for (var element in responsebody.docs) {
@@ -34,11 +32,14 @@ class _HomeState extends State<Home> {
   int? startmonth;
   int? endday;
   int? endmonth;
+  int Adults = 1;
+  int Children = 0;
+  int rooms = 1;
 
   FirebaseAuth instance = FirebaseAuth.instance;
-  bool _userTextFieldEmpty = true;
+  bool _DestinationController = true;
   bool _mailTextFieldEmpty = true;
-  bool _passTextFieldEmpty = true;
+  bool _travelersControllerEmpty = true;
   final controller = HomeController();
 ///////////////////
 
@@ -63,16 +64,18 @@ class _HomeState extends State<Home> {
   final travelersController = TextEditingController();
   final AdultsController = TextEditingController();
   final childrenController = TextEditingController();
+  final RoomsController = TextEditingController();
 
   final _formkey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+
     getData();
     controller.DestinationController.addListener(() {
       setState(() {
-        _userTextFieldEmpty = controller.DestinationController.text.isEmpty;
+        _DestinationController = controller.DestinationController.text.isEmpty;
       });
     });
     durationController.addListener(() {
@@ -82,7 +85,7 @@ class _HomeState extends State<Home> {
     });
     travelersController.addListener(() {
       setState(() {
-        _passTextFieldEmpty = travelersController.text.isEmpty;
+        _travelersControllerEmpty = travelersController.text.isEmpty;
       });
     });
     instance.authStateChanges().listen((User? user) {
@@ -172,27 +175,28 @@ class _HomeState extends State<Home> {
                         children: [
                           GetBuilder<HomeController>(
                             init: HomeController(),
-                            builder: (controller) => TextField(
-                              controller: controller.DestinationController,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.only(left: 20),
-                                  child: Icon(
+                            builder: (controller) => Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 15, top: 10, right: 15),
+                              child: TextField(
+                                controller: controller.DestinationController,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(
                                     Icons.search,
-                                    color: _userTextFieldEmpty
+                                    color: _DestinationController
                                         ? Colors.grey
                                         : const Color(0xFF06B3C4),
-                                    size: 30,
+                                    size: 35,
                                   ),
-                                ),
 
-                                hintText: 'Enter destination',
-                                hintStyle: TextStyle(
-                                    color: Colors.grey[500], fontSize: 16),
-                                // Ajout de la bordure
+                                  hintText: 'Enter destination',
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey[500], fontSize: 16),
+                                  // Ajout de la bordure
+                                ),
+                                // textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
                           Form(
@@ -226,8 +230,8 @@ class _HomeState extends State<Home> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 15),
+                                          padding: const EdgeInsets.only(
+                                              left: 15, top: 10, right: 5),
                                           child: Icon(
                                             Icons.calendar_today,
                                             color: isDateSelected
@@ -239,29 +243,27 @@ class _HomeState extends State<Home> {
                                         ),
                                         const SizedBox(width: 10),
                                         Expanded(
-                                          child: Center(
-                                            child: Text(
-                                              '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}',
-                                              style: TextStyle(
-                                                color: dateTextFieldEmpty
-                                                    ? Colors.grey[500]
-                                                    : Colors.black,
-                                                fontSize: 16,
-                                              ),
+                                          child: Text(
+                                            '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}',
+                                            style: TextStyle(
+                                              color: dateTextFieldEmpty
+                                                  ? Colors.grey[500]
+                                                  : Colors.black,
+                                              fontSize: 16,
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 15),
-                                          child: Icon(
-                                            Icons.keyboard_arrow_down_outlined,
-                                            color: guestTextFieldEmpty
-                                                ? Colors.grey[400]
-                                                : const Color(0xFF06B3C4),
-                                            size: 40,
-                                          ),
-                                        ),
+                                        // Padding(
+                                        //   padding:
+                                        //       const EdgeInsets.only(right: 15),
+                                        //   child: Icon(
+                                        //     Icons.keyboard_arrow_down_outlined,
+                                        //     color: guestTextFieldEmpty
+                                        //         ? Colors.grey[400]
+                                        //         : const Color(0xFF06B3C4),
+                                        //     size: 40,
+                                        //   ),
+                                        // ),
                                       ],
                                     ),
                                   ),
@@ -271,212 +273,357 @@ class _HomeState extends State<Home> {
                                     controller:
                                     '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}';
                                     showModalBottomSheet(
-                                      isScrollControlled: true,
                                       context: context,
-                                      builder: (context) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 25),
-                                        child: SingleChildScrollView(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                              bottom: MediaQuery.of(context)
-                                                  .viewInsets
-                                                  .bottom,
-                                            ),
-                                            child: Form(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 30,
-                                                  ),
-                                                  const Center(
-                                                    child: Text(
-                                                      'Guest Selection',
+                                      builder: (context) {
+                                        return StatefulBuilder(
+                                          builder: (BuildContext context,
+                                              StateSetter setState) {
+                                            return SingleChildScrollView(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 25),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .stretch,
+                                                  children: [
+                                                    const SizedBox(
+                                                      height: 25,
+                                                    ),
+                                                    const Center(
+                                                      child: Text(
+                                                        'Guest Selection',
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 25,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                    const Text(
+                                                      'Adults',
                                                       style: TextStyle(
+                                                        fontSize: 18,
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        fontSize: 25,
                                                         color: Colors.black,
                                                       ),
                                                     ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 20,
-                                                  ),
-                                                  const Text(
-                                                    'Adults',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
+                                                    const SizedBox(
+                                                      height: 5,
                                                     ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              30),
-                                                      color: Colors.grey[50],
-                                                    ),
-                                                    child: TextFormField(
-                                                      controller: AdultsController,
-                                                      decoration:
-                                                          InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        prefixIcon: Icon(
-                                                          Icons.person,
-                                                          color:
-                                                              Colors.grey[400],
-                                                        ),
-                                                        hintText:
-                                                            'Select the number of adults',
-                                                        hintStyle: TextStyle(
-                                                          color:
-                                                              Colors.grey[500],
-                                                        ),
+                                                    // Vos autres widgets ici...
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
+                                                        color: Colors.grey[50],
                                                       ),
-                                                      keyboardType:
-                                                          TextInputType.number,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 20,
-                                                  ),
-                                                  const Text(
-                                                    'Children',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              30),
-                                                      color: Colors.grey[50],
-                                                    ),
-                                                    child: TextFormField(
-                                                      controller: childrenController,
-                                                      decoration:
-                                                          InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        prefixIcon: Icon(
-                                                          Icons.child_care,
-                                                          color:
-                                                              Colors.grey[400],
-                                                        ),
-                                                        hintText:
-                                                            'Select the number of children',
-                                                        hintStyle: TextStyle(
-                                                          color:
-                                                              Colors.grey[500],
-                                                        ),
+                                                      child: Row(
+                                                        children: [
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.remove),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Décrémenter le nombre de chambres s'il est supérieur à 1
+                                                                if (Adults >
+                                                                    1) {
+                                                                  Adults--;
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                          Expanded(
+                                                            child:
+                                                                TextFormField(
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                border:
+                                                                    InputBorder
+                                                                        .none,
+                                                                prefixIcon:
+                                                                    Icon(
+                                                                  Icons.person,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400],
+                                                                ),
+                                                                hintText: Adults
+                                                                    .toString(), // Utiliser la valeur actuelle des chambres comme hintText
+                                                                hintStyle:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                ),
+                                                              ),
+                                                              keyboardType:
+                                                                  TextInputType
+                                                                      .number,
+                                                              onChanged:
+                                                                  (value) {
+                                                                // Mettre à jour la valeur des chambres lors de la saisie manuelle
+                                                                setState(() {
+                                                                  Adults = int.tryParse(
+                                                                          value) ??
+                                                                      Adults;
+                                                                });
+                                                              },
+                                                            ),
+                                                          ),
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.add),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Incrémenter le nombre de chambres
+                                                                Adults++;
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
                                                       ),
-                                                      keyboardType:
-                                                          TextInputType.number,
                                                     ),
-                                                  ),
-                                                  // const SizedBox(
-                                                  //   height: 20,
-                                                  // ),
-                                                  // const Text(
-                                                  //   'Rooms',
-                                                  //   style: TextStyle(
-                                                  //     fontSize: 18,
-                                                  //     fontWeight:
-                                                  //         FontWeight.bold,
-                                                  //     color: Colors.black,
-                                                  //   ),
-                                                  // ),
-                                                  // const SizedBox(
-                                                  //   height: 5,
-                                                  // ),
-                                                  // Container(
-                                                  //   decoration: BoxDecoration(
-                                                  //     borderRadius:
-                                                  //         BorderRadius.circular(
-                                                  //             30),
-                                                  //     color: Colors.grey[50],
-                                                  //   ),
-                                                  //   child: TextFormField(
-                                                  //     decoration:
-                                                  //         InputDecoration(
-                                                  //       border:
-                                                  //           InputBorder.none,
-                                                  //       prefixIcon: Icon(
-                                                  //         Icons.hotel,
-                                                  //         color:
-                                                  //             Colors.grey[400],
-                                                  //       ),
-                                                  //       hintText:
-                                                  //           'Select the number of rooms',
-                                                  //       hintStyle: TextStyle(
-                                                  //         color:
-                                                  //             Colors.grey[500],
-                                                  //       ),
-                                                  //     ),
-                                                  //     keyboardType:
-                                                  //         TextInputType.number,
-                                                  //   ),
-                                                  // ),
-                                                  const SizedBox(
-                                                    height: 25,
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 15),
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        // Action à effectuer lors de la validation du formulaire
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(18),
-                                                          color: const Color(
-                                                              0xFF06B3C4),
-                                                        ),
-                                                        child: const Center(
-                                                          child: Text(
-                                                            'Save',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
+
+                                                    const SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                    const Text(
+                                                      'Childrens',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 5,
+                                                    ),
+                                                    // Vos autres widgets ici...
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
+                                                        color: Colors.grey[50],
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.remove),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Décrémenter le nombre de chambres s'il est supérieur à 1
+                                                                if (Children >
+                                                                    0) {
+                                                                  Children--;
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                          Expanded(
+                                                            child:
+                                                                TextFormField(
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                border:
+                                                                    InputBorder
+                                                                        .none,
+                                                                prefixIcon:
+                                                                    Icon(
+                                                                  Icons
+                                                                      .child_care,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400],
+                                                                ),
+                                                                hintText: Children
+                                                                    .toString(), // Utiliser la valeur actuelle des chambres comme hintText
+                                                                hintStyle:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                ),
+                                                              ),
+                                                              keyboardType:
+                                                                  TextInputType
+                                                                      .number,
+                                                              onChanged:
+                                                                  (value) {
+                                                                // Mettre à jour la valeur des chambres lors de la saisie manuelle
+                                                                setState(() {
+                                                                  Children = int
+                                                                          .tryParse(
+                                                                              value) ??
+                                                                      Children;
+                                                                });
+                                                              },
+                                                            ),
+                                                          ),
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.add),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Incrémenter le nombre de chambres
+                                                                Children++;
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+
+                                                    const SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                    const Text(
+                                                      'Rooms',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 5,
+                                                    ),
+                                                    // Vos autres widgets ici...
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
+                                                        color: Colors.grey[50],
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.remove),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Décrémenter le nombre de chambres s'il est supérieur à 1
+                                                                if (rooms > 1) {
+                                                                  rooms--;
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                          Expanded(
+                                                            child:
+                                                                TextFormField(
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                border:
+                                                                    InputBorder
+                                                                        .none,
+                                                                prefixIcon:
+                                                                    Icon(
+                                                                  Icons.hotel,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400],
+                                                                ),
+                                                                hintText: rooms
+                                                                    .toString(), // Utiliser la valeur actuelle des chambres comme hintText
+                                                                hintStyle:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                ),
+                                                              ),
+                                                              keyboardType:
+                                                                  TextInputType
+                                                                      .number,
+                                                              onChanged:
+                                                                  (value) {
+                                                                // Mettre à jour la valeur des chambres lors de la saisie manuelle
+                                                                setState(() {
+                                                                  rooms = int.tryParse(
+                                                                          value) ??
+                                                                      rooms;
+                                                                });
+                                                              },
+                                                            ),
+                                                          ),
+                                                          IconButton(
+                                                            icon: const Icon(
+                                                                Icons.add),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                // Incrémenter le nombre de chambres
+                                                                rooms++;
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 25,
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 15),
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            Adults;
+                                                            Children;
+                                                            rooms;
+                                                          });
+                                                          // Action à effectuer lors de la validation du formulaire
+                                                        },
+                                                        child: Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(12),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        18),
+                                                            color: const Color(
+                                                                0xFF06B3C4),
+                                                          ),
+                                                          child: const Center(
+                                                            child: Text(
+                                                              'Save',
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 25,
-                                                  ),
-                                                ],
+                                                    const SizedBox(
+                                                      height: 25,
+                                                    )
+                                                    // Vos autres widgets ici...
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                            );
+                                          },
+                                        );
+                                      },
                                     );
                                   },
                                   child: Container(
@@ -488,8 +635,11 @@ class _HomeState extends State<Home> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 15),
+                                          padding: const EdgeInsets.only(
+                                              left: 15,
+                                              top: 15,
+                                              right: 5,
+                                              bottom: 15),
                                           child: Icon(
                                             Icons.person,
                                             color: isGuestEntered
@@ -501,29 +651,27 @@ class _HomeState extends State<Home> {
                                         ),
                                         const SizedBox(width: 10),
                                         Expanded(
-                                          child: Center(
-                                            child: Text(
-                                              'Guest Details',
-                                              style: TextStyle(
-                                                color: guestTextFieldEmpty
-                                                    ? Colors.grey[500]
-                                                    : Colors.black,
-                                                fontSize: 16,
-                                              ),
+                                          child: Text(
+                                            ' Adults: $Adults . Children: $Children . Rooms : $rooms',
+                                            style: TextStyle(
+                                              color: _travelersControllerEmpty
+                                                  ? Colors.grey[500]
+                                                  : Colors.black,
+                                              fontSize: 16,
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 15),
-                                          child: Icon(
-                                            Icons.keyboard_arrow_down_rounded,
-                                            color: guestTextFieldEmpty
-                                                ? Colors.grey[400]
-                                                : const Color(0xFF06B3C4),
-                                            size: 40,
-                                          ),
-                                        ),
+                                        // Padding(
+                                        //   padding:
+                                        //       const EdgeInsets.only(right: 15),
+                                        //   child: Icon(
+                                        //     Icons.keyboard_arrow_down_rounded,
+                                        //     color: guestTextFieldEmpty
+                                        //         ? Colors.grey[400]
+                                        //         : const Color(0xFF06B3C4),
+                                        //     size: 40,
+                                        //   ),
+                                        // ),
                                       ],
                                     ),
                                   ),
@@ -557,6 +705,7 @@ class _HomeState extends State<Home> {
                                     print(startmonth);
                                     print(endday);
                                     print(endmonth);
+                                    print(RoomsController);
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.all(10),
@@ -633,7 +782,8 @@ class _HomeState extends State<Home> {
                                     ),
                                     child: Center(
                                       child: Image.network(
-                                        '${hotels[i]['Photos']['Photo1']}',
+                                        '${hotels[i]['photo1']}',
+                                        // fit: BoxFit.contain,
                                       ),
                                     ),
                                   ),
@@ -655,17 +805,17 @@ class _HomeState extends State<Home> {
                                                   const EdgeInsets.all(6.0),
                                               child: Row(
                                                 children: [
+                                                  // Text(
+                                                  //   "\$${hotels[i]['price'] - (hotels[i]['price'] * (hotels[i]['discount']) / 100)}",
+                                                  //   style: const TextStyle(
+                                                  //       fontWeight:
+                                                  //           FontWeight.bold,
+                                                  //       color: Color.fromARGB(
+                                                  //           255, 0, 0, 0)),
+                                                  // ),
                                                   Text(
-                                                    "\$${hotels[i]['price'] - (hotels[i]['price'] * (hotels[i]['discount']) / 100)}",
+                                                    '\$${hotels[i]['price']}/Day',
                                                     style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Color.fromARGB(
-                                                            255, 0, 0, 0)),
-                                                  ),
-                                                  const Text(
-                                                    '/Day',
-                                                    style: TextStyle(
                                                         color: Color.fromARGB(
                                                             255, 0, 0, 0)),
                                                   )
@@ -708,7 +858,7 @@ class _HomeState extends State<Home> {
                                               Row(
                                                 children: [
                                                   Text(
-                                                    '⭐${hotels[i]['Ritting']} ',
+                                                    '⭐${hotels[i]['rating']} ',
                                                     style: const TextStyle(
                                                         color: Color.fromARGB(
                                                             255, 255, 166, 12)),
@@ -721,7 +871,7 @@ class _HomeState extends State<Home> {
                                                 ],
                                               ),
                                               Text(
-                                                "${hotels[i]['Title']}",
+                                                "${hotels[i]['title']}",
                                                 style: const TextStyle(
                                                     color: Color.fromARGB(
                                                         255, 0, 0, 0),
@@ -736,7 +886,7 @@ class _HomeState extends State<Home> {
                                                     color: Colors.grey,
                                                   ),
                                                   Text(
-                                                    "${hotels[i]['Adresse']}",
+                                                    "${hotels[i]['adresse']}",
                                                     style: const TextStyle(
                                                         color: Colors.grey),
                                                   ),

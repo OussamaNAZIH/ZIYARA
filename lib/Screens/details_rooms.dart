@@ -7,9 +7,12 @@ class detailsRooms extends StatelessWidget {
   int? endday;
   int? endmonth;
   dynamic dataList;
+  dynamic roomData;
+
   detailsRooms(
       {super.key,
       required this.dataList,
+      required this.roomData,
       required this.startday,
       required this.startmonth,
       required this.endday,
@@ -45,37 +48,39 @@ class detailsRooms extends StatelessWidget {
                             Colors.black.withOpacity(0.2),
                             BlendMode.srcATop,
                           ),
-                          child: Image.asset(
-                            'images/sofitel.jpg',
-                            width: 100,
-                          ),
+                          // child: Image.asset(
+                          //   dataList['photos']['photo3'],
+                          //   width: 100,
+                          //   height: 50,
+                          // ),
                         ),
                       ),
                       const SizedBox(
                         width: 10,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.all(2.0),
+                      Padding(
+                        padding: const EdgeInsets.all(2.0),
                         child: Column(
                           children: [
                             Text(
-                              "Eliinate Galian Hotel",
-                              style: TextStyle(
+                              dataList['title'],
+                              style: const TextStyle(
                                   color: Color.fromARGB(255, 0, 0, 0),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16),
                             ),
                             Text(
-                              "Chestnut StreetRome,NY",
-                              style: TextStyle(color: Colors.grey),
+                              dataList['adresse'],
+                              style: const TextStyle(color: Colors.grey),
                             ),
                             Row(
                               children: [
-                                Text('£38 / Night'),
-                                SizedBox(
+                                Text('\$ ${dataList['price']} / Night'),
+                                const SizedBox(
                                   width: 15,
                                 ),
-                                Text('⭐4,4 (516)'),
+                                Text(
+                                    '⭐${dataList['rating']} (${dataList['reviews']})'),
                               ],
                             )
                           ],
@@ -106,25 +111,25 @@ class detailsRooms extends StatelessWidget {
                       const SizedBox(
                         height: 10,
                       ),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.date_range,
                             color: Colors.grey,
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 5,
                           ),
-                          Text(
+                          const Text(
                             'Dates ',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Text(
-                            '15 - 18 Nov 2022',
-                            style: TextStyle(
+                            '$startday - $endday Nov 2022',
+                            style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           )
@@ -177,7 +182,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '${dataList['Rooms']['Title']}',
+                            '${roomData['size']}',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -230,18 +235,18 @@ class detailsRooms extends StatelessWidget {
                       const SizedBox(
                         height: 10,
                       ),
-                      const Row(
+                      Row(
                         children: [
-                          Text(
+                          const Text(
                             'Price ',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Text(
-                            '\$139.00',
-                            style: TextStyle(
+                            '\$ ${dataList['price']}',
+                            style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           )
@@ -250,18 +255,18 @@ class detailsRooms extends StatelessWidget {
                       const SizedBox(
                         height: 15,
                       ),
-                      const Row(
+                      Row(
                         children: [
-                          Text(
+                          const Text(
                             'Admin fee ',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Text(
-                            '\$2.50',
-                            style: TextStyle(
+                            '\$${dataList['discount']}',
+                            style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           )
@@ -270,18 +275,18 @@ class detailsRooms extends StatelessWidget {
                       const SizedBox(
                         height: 15,
                       ),
-                      const Row(
+                      Row(
                         children: [
-                          Text(
+                          const Text(
                             'Total fee ',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Text(
-                            '\$141.50',
-                            style: TextStyle(
+                            '\$${dataList['price'] + dataList['discount']}',
+                            style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
                           )

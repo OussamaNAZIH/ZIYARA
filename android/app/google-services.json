@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "303176017843",
-    "project_id": "mypfe-24427",
-    "storage_bucket": "mypfe-24427.appspot.com"
+    "project_number": "665436151650",
+    "project_id": "hotels-pfe",
+    "storage_bucket": "hotels-pfe.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:303176017843:android:5a32151136ae15387b8dc6",
+        "mobilesdk_app_id": "1:665436151650:android:306d62197b866954e2d63b",
         "android_client_info": {
           "package_name": "com.example.flutter_pfe"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD3tu0XD_dluSukTRV2m45amDaQiCGHn5o"
+          "current_key": "AIzaSyD_GeUFaOaWvn13jdy6JETr27ooUx1jwH8"
         }
       ],
       "services": {

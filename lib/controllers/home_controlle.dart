@@ -10,9 +10,9 @@ class HomeController extends GetxController {
   Future<void> initialData(TextEditingController DestinationController) async {
     data = [];
     print("loading");
-    CollectionReference datas = FirebaseFirestore.instance.collection('Hotels');
+    CollectionReference datas = FirebaseFirestore.instance.collection('hotels');
     QuerySnapshot hotelsdata = await datas
-        .where('Title', isEqualTo: DestinationController.text.trim())
+        .where('adresse', isEqualTo: DestinationController.text.trim())
         .get();
     for (var element in hotelsdata.docs) {
       data.add(element);

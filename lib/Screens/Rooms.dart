@@ -125,6 +125,7 @@ class Book extends StatelessWidget {
                                                 endday: endday,
                                                 endmonth: endmonth,
                                                 dataList: dataList,
+                                                roomData: dataList['chamsp'],
                                               )));
                                 },
                                 child: Container(
@@ -185,7 +186,7 @@ class Book extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${dataList['Rooms']['ChamSp']['Title']}",
+                                          "${dataList['chamsp']['title']}",
                                           style: const TextStyle(
                                             color: Color(0xFF06B3C4),
                                             fontWeight: FontWeight.bold,
@@ -228,7 +229,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Price for ${dataList['Rooms']['ChamSp']['Nbperson']} adults',
+                                              'Price for ${dataList['chamsp']['nbperson']} adults',
                                             ),
                                           ],
                                         ),
@@ -242,7 +243,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              '${dataList['Rooms']['ChamSp']['beds']} queen bed',
+                                              '${dataList['chamsp']['beds']} queen bed',
                                             ),
                                           ],
                                         ),
@@ -257,7 +258,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Room size : ${dataList['Rooms']['ChamSp']['size']}',
+                                              'Room size : ${dataList['chamsp']['size']}',
                                             ),
                                           ],
                                         ),
@@ -489,27 +490,27 @@ class Book extends StatelessWidget {
                                           ],
                                         ),
                                         Text(
-                                          'reserver : ${dataList['Rooms']['ChamSp']['reserver']} ',
+                                          'reserver : ${dataList['chamsp']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
 
                                         Text(
-                                          'dispo : ${15 - dataList['Rooms']['ChamSp']['reserver']} ',
+                                          'dispo : ${15 - dataList['chamsp']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
 
                                         Text(
-                                          'Price for ${dataList['Rooms']['ChamSp']['Price']} night (9 Mar - 10 Mar) ',
+                                          'Price for ${dataList['chamsp']['price']} night (9 Mar - 10 Mar) ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
                                         Text(
-                                          'MAD ${dataList['Rooms']['ChamSp']['Price']} ',
+                                          'MAD ${dataList['chamsp']['price']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0),
@@ -556,8 +557,9 @@ class Book extends StatelessWidget {
                                                 endday: endday,
                                                 endmonth: endmonth,
                                                 dataList: dataList,
+                                                roomData: dataList['chamsp'],
                                               )));
-                                  print(dataList['Rooms']);
+                                  print(dataList);
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
@@ -617,7 +619,7 @@ class Book extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${dataList['Rooms']['ChamSp']['Title']}",
+                                          "${dataList['chamdb']['title']}",
                                           style: const TextStyle(
                                             color: Color(0xFF06B3C4),
                                             fontWeight: FontWeight.bold,
@@ -660,7 +662,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Price for ${dataList['Rooms']['Chamdb']['Nbperson']} adults',
+                                              'Price for ${dataList['chamdb']['nbperson']} adults',
                                             ),
                                           ],
                                         ),
@@ -674,7 +676,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              '${dataList['Rooms']['Chamdb']['beds']} queen bed',
+                                              '${dataList['chamdb']['beds']} queen bed',
                                             ),
                                           ],
                                         ),
@@ -689,7 +691,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Room size : ${dataList['Rooms']['Chamdb']['size']}',
+                                              'Room size : ${dataList['chamdb']['size']}',
                                             ),
                                           ],
                                         ),
@@ -921,14 +923,14 @@ class Book extends StatelessWidget {
                                           ],
                                         ),
                                         Text(
-                                          'reserver : ${dataList['Rooms']['Chamdb']['reserver']} ',
+                                          'reserver : ${dataList['chamdb']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
 
                                         Text(
-                                          'dispo : ${15 - dataList['Rooms']['Chamdb']['reserver']} ',
+                                          'dispo : ${15 - dataList['chamdb']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
@@ -940,7 +942,7 @@ class Book extends StatelessWidget {
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
                                         Text(
-                                          'MAD ${dataList['Rooms']['Chamdb']['Price']}',
+                                          'MAD ${dataList['chamdb']['price']}',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0),
@@ -987,8 +989,9 @@ class Book extends StatelessWidget {
                                                 endday: endday,
                                                 endmonth: endmonth,
                                                 dataList: dataList,
+                                                roomData: dataList['chamdb'],
                                               )));
-                                  print(dataList['Rooms']);
+                                  print(dataList['chamdb']);
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
@@ -1048,7 +1051,7 @@ class Book extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          " ${dataList['Rooms']['Suites']['Title']}",
+                                          " ${dataList['suites']['title']}",
                                           style: const TextStyle(
                                             color: Color(0xFF06B3C4),
                                             fontWeight: FontWeight.bold,
@@ -1091,7 +1094,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Price for  ${dataList['Rooms']['Suites']['Nbperson']} adults',
+                                              'Price for  ${dataList['suites']['nbperson']} adults',
                                             ),
                                           ],
                                         ),
@@ -1105,7 +1108,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              '${dataList['Rooms']['Suites']['beds']} queen bed',
+                                              '${dataList['suites']['beds']} queen bed',
                                             ),
                                           ],
                                         ),
@@ -1120,7 +1123,7 @@ class Book extends StatelessWidget {
                                               width: 15,
                                             ),
                                             Text(
-                                              'Room size :  ${dataList['Rooms']['Suites']['size']}',
+                                              'Room size :  ${dataList['suites']['size']}',
                                             ),
                                           ],
                                         ),
@@ -1352,14 +1355,14 @@ class Book extends StatelessWidget {
                                           ],
                                         ),
                                         Text(
-                                          'reserver : ${dataList['Rooms']['Suites']['reserver']} ',
+                                          'reserver : ${dataList['suites']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
 
                                         Text(
-                                          'dispo : ${2 - dataList['Rooms']['ChamSp']['reserver']} ',
+                                          'dispo : ${2 - dataList['suites']['reserver']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0)),
@@ -1372,7 +1375,7 @@ class Book extends StatelessWidget {
                                                   Color.fromARGB(255, 0, 0, 0)),
                                         ),
                                         Text(
-                                          'MAD  ${dataList['Rooms']['Suites']['Price']} ',
+                                          'MAD  ${dataList['suites']['price']} ',
                                           style: const TextStyle(
                                               color:
                                                   Color.fromARGB(255, 0, 0, 0),
@@ -1419,8 +1422,9 @@ class Book extends StatelessWidget {
                                                 endday: endday,
                                                 endmonth: endmonth,
                                                 dataList: dataList,
+                                                roomData: dataList['suites'],
                                               )));
-                                  print(dataList['Rooms']['Title']);
+                                  print(dataList['suites']);
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
