@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pfe/Screens/Login.dart';
-import 'package:flutter_pfe/Screens/MapsScreen.dart';
-import 'package:flutter_pfe/Screens/auth.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -14,19 +12,35 @@ class Registration extends StatefulWidget {
 
 class _RegistrationState extends State<Registration> {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
+
   addUser() async {
     try {
-      DocumentReference reponse = await users.add({
-        "userid": "",
-        "username": _userController.text.trim(),
-        "usergmail": _mailController.text.trim(),
-        "userprofile": ""
-      });
+      // Obtenez l'utilisateur actuellement connecté
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Récupérez l'UID de l'utilisateur
+        String userId = user.uid;
+
+        // Créez un nouveau document avec l'ID de l'utilisateur comme ID de document
+        DocumentReference userDocRef = users.doc(userId);
+
+        // Ajoutez les informations de l'utilisateur au document
+        await userDocRef.set({
+          "userid": userDocRef.id,
+          // Ajoutez d'autres champs d'utilisateur si nécessaire
+          "username": _userController.text.trim(),
+          "usergmail": _mailController.text.trim(),
+        });
+
+        print("Utilisateur ajouté avec l'ID utilisateur: $userId");
+      } else {
+        print("Aucun utilisateur n'est actuellement connecté.");
+      }
     } catch (e) {
-      print("Error $e");
+      print("Erreur lors de l'ajout de l'utilisateur: $e");
     }
   }
-
   // addData() async {
   //   CollectionReference Userref =
   //       FirebaseFirestore.instance.collection("users");

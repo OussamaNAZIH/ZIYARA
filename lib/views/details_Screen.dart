@@ -39,18 +39,7 @@ class DetailsScreen extends StatelessWidget {
             color: Color.fromARGB(255, 255, 255, 255),
           ),
           onPressed: () {
-            final controller = Get.put(HomeController());
-            Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => SearchScreen(
-                          startday: startday,
-                          startmonth: startmonth,
-                          endday: endday,
-                          endmonth: endmonth,
-                          destinationController:
-                              controller.DestinationController,
-                        )));
+            Navigator.pop(context);
             print(dataList);
           },
         ),
@@ -74,11 +63,17 @@ class DetailsScreen extends StatelessWidget {
                         Container(
                           height: 260,
                           color: const Color.fromARGB(255, 255, 255, 255),
-                          child: dataList['photos'] != null
+                          child: dataList['photos'] != null &&
+                                  dataList['photos'].length >
+                                      0 // Vérifiez si la liste de photos n'est pas vide
                               ? ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: 3,
-                                  itemBuilder: (context, int index) {
+                                  itemCount: dataList['photos'].length,
+                                  itemBuilder: (context, index) {
+                                    String photoKey =
+                                        'photo${index + 1}'; // Génère la clé de la photo (photo1, photo2, photo3, ...)
+                                    String photoUrl = dataList['photos'][
+                                        photoKey]; // Récupère l'URL de la photo à partir de la carte dataList
                                     return Stack(
                                       children: [
                                         ClipRRect(
@@ -91,21 +86,22 @@ class DetailsScreen extends StatelessWidget {
                                             ),
                                             child: Center(
                                               child: Image.network(
-                                                dataList['photos']['photo3'],
+                                                photoUrl,
                                                 fit: BoxFit.cover,
                                                 width: MediaQuery.of(context)
                                                     .size
                                                     .width,
-                                                // width: 360,
                                               ),
                                             ),
                                           ),
                                         )
                                       ],
                                     );
-                                  })
+                                  },
+                                )
                               : const Center(
-                                  child: Text('No photos available')),
+                                  child: Text('No photos available'),
+                                ),
                         )
                       ],
                     ),
@@ -236,10 +232,6 @@ class DetailsScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(5.0),
                         child: Column(
                           children: [
-                            // Image.asset(
-                            //   'images/Sofitel1.png',
-                            //   height: 130,
-                            // ),
                             Container(
                               height: 135,
                               decoration: BoxDecoration(

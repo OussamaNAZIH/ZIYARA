@@ -7,6 +7,7 @@ import 'package:flutter_pfe/controllers/home_controlle.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
 import 'package:flutter_pfe/views/home.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -28,6 +29,27 @@ class _HomeState extends State<Home> {
     }
   }
 
+  String? _userName = '';
+  void _getCurrentUser() async {
+    // Récupération de l'utilisateur actuel authentifié avec Firebase
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // Récupération des données utilisateur à partir de Firestore
+      DocumentSnapshot userData = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      // Mise à jour de l'interface utilisateur avec les informations utilisateur récupérées
+      setState(() {
+        _userName = userData['username'];
+      });
+    }
+  }
+
+  List<String> _titles = [];
+
   int? startday;
   int? startmonth;
   int? endday;
@@ -35,12 +57,12 @@ class _HomeState extends State<Home> {
   int Adults = 1;
   int Children = 0;
   int rooms = 1;
-
+  final List<String> _hotelTitles = [];
   FirebaseAuth instance = FirebaseAuth.instance;
   bool _DestinationController = true;
   bool _mailTextFieldEmpty = true;
   bool _travelersControllerEmpty = true;
-  final controller = HomeController();
+  // final controller = HomeController();
 ///////////////////
 
   bool dateTextFieldEmpty = true;
@@ -56,8 +78,6 @@ class _HomeState extends State<Home> {
   DateTimeRange selectedDates =
       DateTimeRange(start: DateTime.now(), end: DateTime.now());
 
-  String? selectedRoomType;
-
 ////////////////////////////////////////
 
   final durationController = TextEditingController();
@@ -65,17 +85,22 @@ class _HomeState extends State<Home> {
   final AdultsController = TextEditingController();
   final childrenController = TextEditingController();
   final RoomsController = TextEditingController();
+  late TextEditingController DestinationController;
 
   final _formkey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    _getCurrentUser();
+    _fetchTitles();
+
+    DestinationController = TextEditingController();
 
     getData();
-    controller.DestinationController.addListener(() {
+    DestinationController.addListener(() {
       setState(() {
-        _DestinationController = controller.DestinationController.text.isEmpty;
+        _DestinationController = DestinationController.text.isEmpty;
       });
     });
     durationController.addListener(() {
@@ -94,6 +119,30 @@ class _HomeState extends State<Home> {
             MaterialPageRoute(builder: (context) => const SplashScreen()));
       }
     });
+  }
+
+  Future<void> _fetchTitles() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('hotels').get();
+
+      List<String> titles = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String,
+            dynamic>?; // Cast explicite vers Map<String, dynamic> ou utilisez le type de données correct
+        if (data != null && data['title'] != null) {
+          return data['title'] as String;
+        } else {
+          return ''; // ou toute autre valeur par défaut
+        }
+      }).toList();
+
+      setState(() {
+        _titles = titles;
+      });
+    } catch (e) {
+      print('Error fetching titles: $e');
+      // Gérer les erreurs en conséquence
+    }
   }
 
   @override
@@ -116,18 +165,17 @@ class _HomeState extends State<Home> {
                         shape: BoxShape.circle,
                       ),
                       child: const CircleAvatar(
-                        // backgroundImage: AssetImage(''),
-                        backgroundColor: Colors.black,
+                        backgroundImage: AssetImage('images/profile.png'),
                       ),
                     ),
                     const Spacer(),
-                    const Column(
+                    Column(
                       children: [
                         Text(
-                          "",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          "Hi, $_userName",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Row(
+                        const Row(
                           children: [
                             Icon(
                               Icons.location_on_rounded,
@@ -173,30 +221,85 @@ class _HomeState extends State<Home> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          GetBuilder<HomeController>(
-                            init: HomeController(),
-                            builder: (controller) => Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 15, top: 10, right: 15),
-                              child: TextField(
-                                controller: controller.DestinationController,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: _DestinationController
-                                        ? Colors.grey
-                                        : const Color(0xFF06B3C4),
-                                    size: 35,
-                                  ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 15, top: 10, right: 15),
+                            child: Autocomplete<String>(
+                              optionsBuilder:
+                                  (TextEditingValue textEditingValue) {
+                                if (textEditingValue.text == '') {
+                                  return const Iterable<String>.empty();
+                                }
+                                return _titles.where((String item) =>
+                                    item.contains(
+                                        textEditingValue.text.toLowerCase()));
+                              },
+                              onSelected: (String item) {
+                                print('the $item');
+                                DestinationController.text = item;
+                              },
+                              fieldViewBuilder: (BuildContext context,
+                                  TextEditingController controller,
+                                  FocusNode focusNode,
+                                  VoidCallback onFieldSubmitted) {
+                                return TextField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Enter destination',
+                                    hintStyle: TextStyle(
+                                        color: Colors.grey[500], fontSize: 16),
+                                    // Ajout de la bordure
 
-                                  hintText: 'Enter destination',
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey[500], fontSize: 16),
-                                  // Ajout de la bordure
-                                ),
-                                // textAlign: TextAlign.center,
-                              ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: _DestinationController
+                                          ? Colors.grey
+                                          : const Color(0xFF06B3C4),
+                                      size: 35,
+                                    ),
+                                  ),
+                                  onChanged: (String value) {
+                                    // You can add additional logic here if necessary
+                                  },
+                                  onSubmitted: (String value) {
+                                    onFieldSubmitted();
+                                  },
+                                );
+                              },
+                              optionsViewBuilder: (BuildContext context,
+                                  AutocompleteOnSelected<String> onSelected,
+                                  Iterable<String> options) {
+                                return Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Material(
+                                    elevation: 4.0,
+                                    child: Container(
+                                      constraints:
+                                          const BoxConstraints(maxHeight: 200),
+                                      width: MediaQuery.of(context).size.width,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      child: ListView(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        children: options.map((String option) {
+                                          return ListTile(
+                                            title: Text(option),
+                                            onTap: () {
+                                              onSelected(option);
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           Form(
@@ -212,7 +315,7 @@ class _HomeState extends State<Home> {
                                     final DateTimeRange? dateTimeRange =
                                         await showDateRangePicker(
                                             context: context,
-                                            firstDate: DateTime(2000),
+                                            firstDate: DateTime.now(),
                                             lastDate: DateTime(3000));
                                     if (dateTimeRange != null) {
                                       setState(() {
@@ -661,17 +764,6 @@ class _HomeState extends State<Home> {
                                             ),
                                           ),
                                         ),
-                                        // Padding(
-                                        //   padding:
-                                        //       const EdgeInsets.only(right: 15),
-                                        //   child: Icon(
-                                        //     Icons.keyboard_arrow_down_rounded,
-                                        //     color: guestTextFieldEmpty
-                                        //         ? Colors.grey[400]
-                                        //         : const Color(0xFF06B3C4),
-                                        //     size: 40,
-                                        //   ),
-                                        // ),
                                       ],
                                     ),
                                   ),
@@ -682,25 +774,21 @@ class _HomeState extends State<Home> {
                                     startmonth = selectedDates.start.month;
                                     endday = selectedDates.end.day;
                                     endmonth = selectedDates.end.month;
-                                    destinationController:
-                                    controller.DestinationController;
+
                                     controller:
                                     '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}';
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) => SearchScreen(
-                                                  startday: startday,
-                                                  startmonth: startmonth,
-                                                  endday: endday,
-                                                  endmonth: endmonth,
-                                                  destinationController:
-                                                      controller
-                                                          .DestinationController,
-                                                )));
 
-                                    controller.initialData(
-                                        controller.DestinationController);
-                                    controller.update();
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) => SearchScreen(
+                                                startday: startday,
+                                                startmonth: startmonth,
+                                                endday: endday,
+                                                endmonth: endmonth,
+                                                Controller:
+                                                    DestinationController
+                                                        .text)));
+
                                     print(startday);
                                     print(startmonth);
                                     print(endday);
@@ -974,7 +1062,7 @@ class _HomeState extends State<Home> {
                                 BlendMode.srcATop,
                               ),
                               child: Image.asset(
-                                'images/sofitel.jpg',
+                                'images/profile.png',
                                 width: 100,
                               ),
                             ),
@@ -987,23 +1075,23 @@ class _HomeState extends State<Home> {
                             child: Column(
                               children: [
                                 Text(
-                                  "Eliinate Galian Hotel",
+                                  "title",
                                   style: TextStyle(
                                       color: Color.fromARGB(255, 0, 0, 0),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16),
                                 ),
                                 Text(
-                                  "Chestnut StreetRome,NY",
+                                  "adresse",
                                   style: TextStyle(color: Colors.grey),
                                 ),
                                 Row(
                                   children: [
-                                    Text('£38 / Night'),
+                                    Text('\$ price / Night'),
                                     SizedBox(
                                       width: 15,
                                     ),
-                                    Text('⭐4,4 (516)'),
+                                    Text('⭐rating '),
                                   ],
                                 )
                               ],

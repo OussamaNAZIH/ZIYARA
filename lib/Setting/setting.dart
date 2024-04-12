@@ -373,12 +373,15 @@ class _AccountScreenState extends State<AccountScreen> {
                         size: 27,
                         color: Color.fromRGBO(244, 67, 54, 1),
                       ),
-                      title: Text(
-                        'Log Out',
-                        style: TextStyle(
-                            color: const Color.fromRGBO(244, 67, 54, 1),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
+                      title: InkWell(
+                        onTap: (){},
+                        child: Text(
+                          'Log Out',
+                          style: TextStyle(
+                              color: const Color.fromRGBO(244, 67, 54, 1),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
+                        ),
                       ),
                       onTap: () {
                         // Action à exécuter lors du clic sur "Log Out"
