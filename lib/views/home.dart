@@ -59,13 +59,12 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  getTitleStream() async {
+  void getTitleStream(int minPrice, int maxPrice) async {
     var datas = await FirebaseFirestore.instance
         .collection('hotels')
-        .where('rating', isEqualTo: selectedRating)
         .where('price', isGreaterThanOrEqualTo: minPrice)
         .where('price', isLessThanOrEqualTo: maxPrice)
-        .orderBy('title')
+        .orderBy('price') // Utiliser le même champ 'price' pour orderBy
         .get();
 
     setState(() {
@@ -83,14 +82,24 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void didChangeDependencies() {
-    getTitleStream();
+    getTitleStream(minPrice, maxPrice);
     super.didChangeDependencies();
   }
 
-  void applyFilters() {
-    getTitleStream();
-    Navigator.of(context).pop(); // Close the filter modal
+  void applyFilters(int selectedMinPrice, int selectedMaxPrice) {
+    // Appel de getTitleStream en passant les filtres sélectionnés
+    getTitleStream(selectedMinPrice, selectedMaxPrice);
+
+    Navigator.of(context).pop(); // Ferme la modal de filtre
+    setState(() {
+      _Results = List.from(_allResults);
+      minPrice = selectedMinPrice; // Mettre à jour minPrice
+      maxPrice = selectedMaxPrice; // Mettre à jour maxPrice
+    });
+    print(maxPrice);
   }
+
+  // Autres méthodes
 
   int selectedRating = 0;
 
@@ -230,9 +239,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void showFilterModal(BuildContext context) {
-    int minPrice = 0;
-    int maxPrice = 1000;
-
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -314,7 +320,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      applyFilters();
+                      print(selectedRating);
+                      print(maxPrice);
+                      print(minPrice);
+                      applyFilters(minPrice, maxPrice);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),
