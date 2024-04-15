@@ -12,9 +12,19 @@ class SearchScreen extends StatefulWidget {
   int? startmonth;
   int? endday;
   int? endmonth;
+  int? rooms;
+  int? Children;
+  int? Adults;
+  int? roommin;
   final String Controller;
   SearchScreen(
       {super.key,
+      required this.rooms,
+      required this.Children,
+      required this.Adults,
+      required this.roommin,
+
+
       required this.Controller,
       required this.startday,
       required this.startmonth,
@@ -31,6 +41,8 @@ class _SearchScreenState extends State<SearchScreen> {
   List _Results = [];
   int minPrice = 0;
   int maxPrice = 1000;
+  double minRating = 0;
+  double maxRating = 5;
   @override
   void initState() {
     TextController = TextEditingController(text: widget.Controller);
@@ -45,10 +57,12 @@ class _SearchScreenState extends State<SearchScreen> {
   searchResultatList() {
     var showResultats = [];
     if (TextController.text != "") {
-      for (var titleSnapShot in _allResults) {
-        var title = titleSnapShot['title'].toString().toLowerCase();
-        if (title.contains(TextController.text.toLowerCase())) {
-          showResultats.add(titleSnapShot);
+      for (var result in _allResults) {
+        var title = result['title'].toString().toLowerCase();
+        var address = result['adresse'].toString().toLowerCase();
+        if (title.contains(TextController.text.toLowerCase()) ||
+            address.contains(TextController.text.toLowerCase())) {
+          showResultats.add(result);
         }
       }
     } else {
@@ -59,16 +73,29 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  void getTitleStream(int minPrice, int maxPrice) async {
+  void getTitleStream(
+      int minPrice, int maxPrice, double minRating, double maxRating) async {
     var datas = await FirebaseFirestore.instance
         .collection('hotels')
         .where('price', isGreaterThanOrEqualTo: minPrice)
         .where('price', isLessThanOrEqualTo: maxPrice)
-        .orderBy('price') // Utiliser le même champ 'price' pour orderBy
+        .orderBy('price')
         .get();
 
+    var filteredByPrice = datas.docs.where((doc) {
+      double rating = (doc.data()['rating'] as num).toDouble();
+      return rating >= minRating && rating <= maxRating;
+    }).toList();
+
+    // Trier les résultats filtrés par rating
+    filteredByPrice.sort((a, b) {
+      double ratingA = (a.data()['rating'] as num).toDouble();
+      double ratingB = (b.data()['rating'] as num).toDouble();
+      return ratingB.compareTo(ratingA); // Tri décroissant par rating
+    });
+
     setState(() {
-      _allResults = datas.docs;
+      _allResults = filteredByPrice;
     });
     searchResultatList();
   }
@@ -82,19 +109,23 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void didChangeDependencies() {
-    getTitleStream(minPrice, maxPrice);
+    getTitleStream(minPrice, maxPrice, minRating, maxRating);
     super.didChangeDependencies();
   }
 
-  void applyFilters(int selectedMinPrice, int selectedMaxPrice) {
+  void applyFilters(int selectedMinPrice, int selectedMaxPrice,
+      double selectedminRating, double selectedmaxRating) {
     // Appel de getTitleStream en passant les filtres sélectionnés
-    getTitleStream(selectedMinPrice, selectedMaxPrice);
+    getTitleStream(selectedMinPrice, selectedMaxPrice, selectedminRating,
+        selectedmaxRating);
 
     Navigator.of(context).pop(); // Ferme la modal de filtre
     setState(() {
       _Results = List.from(_allResults);
       minPrice = selectedMinPrice; // Mettre à jour minPrice
-      maxPrice = selectedMaxPrice; // Mettre à jour maxPrice
+      maxPrice = selectedMaxPrice;
+      minRating = selectedminRating;
+      maxRating = selectedmaxRating; // Mettre à jour maxPrice
     });
     print(maxPrice);
   }
@@ -151,6 +182,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       onTap: () {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => DetailsScreen(
+                                 rooms:widget.rooms,
+                                                Children:widget.Children,
+                                                Adults:widget.Adults,
+                                                roommin:widget.roommin,
                                 startday: widget.startday,
                                 startmonth: widget.startmonth,
                                 endday: widget.endday,
@@ -291,29 +326,42 @@ class _SearchScreenState extends State<SearchScreen> {
                     },
                   ),
                   const SizedBox(height: 20.0),
-                  const Text(
-                    'Ratings',
-                    style:
-                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Rating',
+                        style: TextStyle(
+                            fontSize: 18.0, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '⭐$minRating - ⭐$maxRating',
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
+                    ],
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        _buildRatingContainer(5),
-                        const Spacer(),
-                        _buildRatingContainer(4),
-                        const Spacer(),
-                        _buildRatingContainer(3),
-                        const Spacer(),
-                        _buildRatingContainer(2),
-                        const Spacer(),
-                        _buildRatingContainer(1),
-                      ],
-                    ),
+                  const SizedBox(height: 8.0),
+                  RangeSlider(
+                    values:
+                        RangeValues(minRating.toDouble(), maxRating.toDouble()),
+                    min: 0,
+                    max: 5,
+                    divisions: 10,
+                    // labels: RangeLabels('\$$minPrice', '\$$maxPrice'),
+                    onChanged: (RangeValues values) {
+                      setState(() {
+                        minRating = values.start.toDouble();
+                        maxRating = values.end.toDouble();
+                      });
+                    },
+                    activeColor: Colors.yellow,
+                    inactiveColor: Colors.grey,
+                    onChangeStart: (RangeValues values) {
+                      // Ne rien faire lors du début du changement de la valeur
+                    },
+                    onChangeEnd: (RangeValues values) {
+                      // Ne rien faire à la fin du changement de la valeur
+                    },
                   ),
                   const SizedBox(
                     height: 20,
@@ -323,7 +371,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       print(selectedRating);
                       print(maxPrice);
                       print(minPrice);
-                      applyFilters(minPrice, maxPrice);
+                      print(minRating);
+                      print(maxRating);
+                      applyFilters(minPrice, maxPrice, minRating, maxRating);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),
@@ -347,46 +397,6 @@ class _SearchScreenState extends State<SearchScreen> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildRatingContainer(int rating) {
-    final selectedRating = RxInt(0);
-
-    return GestureDetector(
-      onTap: () {
-        if (selectedRating.value == rating) {
-          selectedRating.value = 0; // Déselectionne si déjà sélectionné
-        } else {
-          selectedRating.value = rating;
-        }
-        print(selectedRating);
-      },
-      child: Obx(() => Container(
-            width: 60,
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: selectedRating.value == rating
-                    ? const Color(0xFF06B3C4)
-                    : Colors.grey,
-                width: 1.0,
-              ),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Center(
-              child: Text(
-                '⭐ $rating',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: selectedRating.value == rating
-                      ? const Color(0xFF06B3C4)
-                      : Colors.black,
-                ),
-              ),
-            ),
-          )),
     );
   }
 }

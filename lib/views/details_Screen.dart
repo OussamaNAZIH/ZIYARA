@@ -10,9 +10,17 @@ class DetailsScreen extends StatelessWidget {
   int? startmonth;
   int? endday;
   int? endmonth;
+  int? rooms;
+  int? Children;
+  int? Adults;
+  int? roommin;
   dynamic dataList;
   DetailsScreen(
       {super.key,
+      required this.rooms,
+      required this.Children,
+      required this.Adults,
+      required this.roommin,
       required this.dataList,
       required this.startday,
       required this.startmonth,
@@ -22,6 +30,7 @@ class DetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -77,8 +86,14 @@ class DetailsScreen extends StatelessWidget {
                                     return Stack(
                                       children: [
                                         ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(15),
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.zero,
+                                            topRight: Radius.zero,
+                                            bottomLeft: Radius.circular(
+                                                15), // Pas de radius pour le coin en bas à gauche
+                                            bottomRight: Radius.circular(
+                                                15), // Pas de radius pour le coin en bas à droite
+                                          ),
                                           child: ColorFiltered(
                                             colorFilter: ColorFilter.mode(
                                               Colors.black.withOpacity(0.3),
@@ -145,6 +160,70 @@ class DetailsScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          const Text(
+                            "Ckeck-in",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "$startday/$startmonth",
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Text(
+                            "Ckeck-in",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "$endday/$endmonth",
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Rooms and guests",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        (roommin! >= rooms!
+                                ? '$roommin room . '
+                                : '$rooms room . ') +
+                            (Children == 0
+                                ? '$Adults adults . No children'
+                                : '$Adults adults . $Children children'),
+                        style: const TextStyle(
+                          color: Color(0xFF06B3C4),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Padding(
                   padding: EdgeInsets.all(16.0),
@@ -237,7 +316,9 @@ class DetailsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                   color: const Color.fromARGB(255, 0, 0, 0),
                                   borderRadius: BorderRadius.circular(10)),
-                              child: Image.asset('images/GoogleMap.jpg'),
+                              child: Image.asset(
+                                'images/download.jpg',
+                              ),
                             ),
                             const Spacer(),
                             Padding(
@@ -357,6 +438,10 @@ class DetailsScreen extends StatelessWidget {
                                     endday: endday,
                                     endmonth: endmonth,
                                     dataList: dataList,
+                                    rooms: rooms,
+                                    Children: Children,
+                                    Adults: Adults,
+                                    roommin: roommin,
                                   )));
                     },
                     child: Padding(
