@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pfe/controllers/home_controlle.dart';
+import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   int? startday;
@@ -23,8 +25,6 @@ class SearchScreen extends StatefulWidget {
       required this.Children,
       required this.Adults,
       required this.roommin,
-
-
       required this.Controller,
       required this.startday,
       required this.startmonth,
@@ -43,6 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
   int maxPrice = 1000;
   double minRating = 0;
   double maxRating = 5;
+
   @override
   void initState() {
     TextController = TextEditingController(text: widget.Controller);
@@ -136,6 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // int adults = context.watch<SelectedProvider>().children;
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
@@ -182,10 +184,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       onTap: () {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => DetailsScreen(
-                                 rooms:widget.rooms,
-                                                Children:widget.Children,
-                                                Adults:widget.Adults,
-                                                roommin:widget.roommin,
+                                rooms: widget.rooms,
+                                Children: widget.Children,
+                                Adults: widget.Adults,
+                                roommin: widget.roommin,
                                 startday: widget.startday,
                                 startmonth: widget.startmonth,
                                 endday: widget.endday,

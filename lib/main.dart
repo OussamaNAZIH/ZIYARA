@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
+import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/firebase_options.dart';
 import 'package:flutter_pfe/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 // void main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,16 @@ import 'package:flutter_pfe/generated/l10n.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => SelectedProvider(),
+        )
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -32,13 +43,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        // debugShowCheckedModeBanner: false,
-        // localizationsDelegates: const [
-        //   S.delegate,
-        //   GlobalMaterialLocalizations.delegate,
-        //   GlobalWidgetsLocalizations.delegate,
-        //   GlobalCupertinoLocalizations.delegate,
-        //],
         supportedLocales: S.delegate.supportedLocales,
         theme: ThemeData(
           bottomSheetTheme: const BottomSheetThemeData(

@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pfe/Moduls/SplashScreen.dart';
 import 'package:flutter_pfe/Setting/setting.dart';
-import 'package:flutter_pfe/controllers/home_controlle.dart';
+import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
 import 'package:flutter_pfe/views/home.dart';
-import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -31,17 +31,14 @@ class _HomeState extends State<Home> {
 
   String? _userName = '';
   void _getCurrentUser() async {
-    // Récupération de l'utilisateur actuel authentifié avec Firebase
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Récupération des données utilisateur à partir de Firestore
       DocumentSnapshot userData = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      // Mise à jour de l'interface utilisateur avec les informations utilisateur récupérées
       setState(() {
         _userName = userData['username'];
       });
@@ -61,23 +58,15 @@ class _HomeState extends State<Home> {
   bool _DestinationController = true;
   bool _mailTextFieldEmpty = true;
   final bool _travelersControllerEmpty = true;
-  // final controller = HomeController();
-///////////////////
-
   bool dateTextFieldEmpty = true;
   bool guestTextFieldEmpty = true;
-  bool roomTypeTextFieldEmpty =
-      true; // Variable pour suivre si le champ "Room Type" est vide
-  bool phoneNumberTextFieldEmpty =
-      true; // Variable pour suivre si le champ "Number Phone" est vide
+  bool roomTypeTextFieldEmpty = true;
+  bool phoneNumberTextFieldEmpty = true;
   bool isDateSelected = false;
-  bool _isGuestEnteredControllerEmpty =
-      true; // Variable pour suivre si les détails des invités ont été entrés
+  bool _isGuestEnteredControllerEmpty = true;
 
   DateTimeRange selectedDates =
       DateTimeRange(start: DateTime.now(), end: DateTime.now());
-
-////////////////////////////////////////
 
   final durationController = TextEditingController();
   final isGuestEnteredController = TextEditingController();
@@ -146,12 +135,10 @@ class _HomeState extends State<Home> {
       });
     } catch (e) {
       print('Error fetching titles and addresses: $e');
-      // Gérer les erreurs en conséquence
     }
   }
 
-  int Adults = 1;
-  int Children = 0;
+  int children = 0;
   int rooms = 1;
 
   @override
@@ -445,9 +432,11 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Décrémenter le nombre de chambres s'il est supérieur à 1
-                                                              if (Adults > 1) {
-                                                                Adults--;
-                                                              }
+
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .decrementAdults();
                                                             });
                                                           },
                                                         ),
@@ -463,7 +452,10 @@ class _HomeState extends State<Home> {
                                                                 color: Colors
                                                                     .grey[400],
                                                               ),
-                                                              hintText: Adults
+                                                              hintText: context
+                                                                  .watch<
+                                                                      SelectedProvider>()
+                                                                  .adults
                                                                   .toString(), // Utiliser la valeur actuelle des chambres comme hintText
                                                               hintStyle:
                                                                   TextStyle(
@@ -476,12 +468,6 @@ class _HomeState extends State<Home> {
                                                                     .number,
                                                             onChanged: (value) {
                                                               // Mettre à jour la valeur des chambres lors de la saisie manuelle
-                                                              setState(() {
-                                                                Adults =
-                                                                    int.tryParse(
-                                                                            value) ??
-                                                                        Adults;
-                                                              });
                                                             },
                                                           ),
                                                         ),
@@ -491,7 +477,10 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Incrémenter le nombre de chambres
-                                                              Adults++;
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .incrementAdults();
                                                             });
                                                           },
                                                         ),
@@ -530,10 +519,11 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Décrémenter le nombre de chambres s'il est supérieur à 1
-                                                              if (Children >
-                                                                  0) {
-                                                                Children--;
-                                                              }
+
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .decrementChildren();
                                                             });
                                                           },
                                                         ),
@@ -550,7 +540,10 @@ class _HomeState extends State<Home> {
                                                                 color: Colors
                                                                     .grey[400],
                                                               ),
-                                                              hintText: Children
+                                                              hintText: context
+                                                                  .watch<
+                                                                      SelectedProvider>()
+                                                                  .children
                                                                   .toString(), // Utiliser la valeur actuelle des chambres comme hintText
                                                               hintStyle:
                                                                   TextStyle(
@@ -561,15 +554,8 @@ class _HomeState extends State<Home> {
                                                             keyboardType:
                                                                 TextInputType
                                                                     .number,
-                                                            onChanged: (value) {
-                                                              // Mettre à jour la valeur des chambres lors de la saisie manuelle
-                                                              setState(() {
-                                                                Children =
-                                                                    int.tryParse(
-                                                                            value) ??
-                                                                        Children;
-                                                              });
-                                                            },
+                                                            onChanged:
+                                                                (value) {},
                                                           ),
                                                         ),
                                                         IconButton(
@@ -578,7 +564,10 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Incrémenter le nombre de chambres
-                                                              Children++;
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .incrementChildren();
                                                             });
                                                           },
                                                         ),
@@ -601,7 +590,7 @@ class _HomeState extends State<Home> {
                                                   const SizedBox(
                                                     height: 5,
                                                   ),
-                                                  // Vos autres widgets ici...
+                                                  // Vos autres widgets ici...f
                                                   Container(
                                                     decoration: BoxDecoration(
                                                       borderRadius:
@@ -617,9 +606,11 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Décrémenter le nombre de chambres s'il est supérieur à 1
-                                                              if (rooms > 1) {
-                                                                rooms--;
-                                                              }
+
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .decrementRooms();
                                                             });
                                                           },
                                                         ),
@@ -635,7 +626,10 @@ class _HomeState extends State<Home> {
                                                                 color: Colors
                                                                     .grey[400],
                                                               ),
-                                                              hintText: rooms
+                                                              hintText: context
+                                                                  .watch<
+                                                                      SelectedProvider>()
+                                                                  .rooms
                                                                   .toString(), // Utiliser la valeur actuelle des chambres comme hintText
                                                               hintStyle:
                                                                   TextStyle(
@@ -646,14 +640,8 @@ class _HomeState extends State<Home> {
                                                             keyboardType:
                                                                 TextInputType
                                                                     .number,
-                                                            onChanged: (value) {
-                                                              // Mettre à jour la valeur des chambres lors de la saisie manuelle
-                                                              setState(() {
-                                                                rooms = int.tryParse(
-                                                                        value) ??
-                                                                    rooms;
-                                                              });
-                                                            },
+                                                            onChanged:
+                                                                (value) {},
                                                           ),
                                                         ),
                                                         IconButton(
@@ -662,7 +650,10 @@ class _HomeState extends State<Home> {
                                                           onPressed: () {
                                                             setState(() {
                                                               // Incrémenter le nombre de chambres
-                                                              rooms++;
+                                                              context
+                                                                  .read<
+                                                                      SelectedProvider>()
+                                                                  .incrementRooms();
                                                             });
                                                           },
                                                         ),
@@ -672,54 +663,10 @@ class _HomeState extends State<Home> {
                                                   const SizedBox(
                                                     height: 25,
                                                   ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 15),
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          rooms;
-                                                          Adults;
-                                                          Children;
-                                                          roommin = ((Adults +
-                                                                      Children) /
-                                                                  2)
-                                                              .ceil();
-                                                        });
-                                                        Navigator.pop(context);
-                                                        _isGuestEnteredControllerEmpty =
-                                                            false;
-                                                        // Action à effectuer lors de la validation du formulaire
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(18),
-                                                          color: const Color(
-                                                              0xFF06B3C4),
-                                                        ),
-                                                        child: const Center(
-                                                          child: Text(
-                                                            'Save',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
+
                                                   const SizedBox(
                                                     height: 25,
                                                   )
-                                                  // Vos autres widgets ici...
                                                 ],
                                               ),
                                             ),
@@ -753,7 +700,7 @@ class _HomeState extends State<Home> {
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Text(
-                                          ' Adults: $Adults . Children: $Children . Rooms : $rooms ',
+                                          ' Adults: ${context.watch<SelectedProvider>().adults} . Children: ${context.watch<SelectedProvider>().children} . Rooms : ${context.watch<SelectedProvider>().rooms} ',
                                           style: TextStyle(
                                             color: Colors.grey[500],
                                             fontSize: 16,
@@ -774,6 +721,9 @@ class _HomeState extends State<Home> {
 
                                     controller:
                                     '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}';
+                                    final selectedProvider =
+                                        Provider.of<SelectedProvider>(context,
+                                            listen: false);
 
                                     Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -782,21 +732,26 @@ class _HomeState extends State<Home> {
                                                 startmonth: startmonth,
                                                 endday: endday,
                                                 endmonth: endmonth,
-                                                rooms: rooms,
-                                                Children: Children,
-                                                Adults: Adults,
+                                                rooms:
+                                                    selectedProvider.children,
+                                                Children:
+                                                    selectedProvider.children,
+                                                Adults: selectedProvider.adults,
                                                 roommin: roommin,
                                                 Controller:
                                                     DestinationController
                                                         .text)));
-                                    print(rooms);
                                     print(startday);
                                     print(startmonth);
                                     print(endday);
                                     print(endmonth);
                                     print('roomm valide $roommin');
-                                    print(Adults);
-                                    print(Children);
+                                    print(context
+                                        .read<SelectedProvider>()
+                                        .adults);
+                                    print(context
+                                        .read<SelectedProvider>()
+                                        .children);
                                   }
                                 },
                                 child: Container(
@@ -846,19 +801,24 @@ class _HomeState extends State<Home> {
                       itemCount: hotels.length,
                       itemBuilder: ((context, int i) {
                         return InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => DetailsScreen(
-                                    rooms: rooms,
-                                    Children: Children,
-                                    Adults: Adults,
-                                    roommin: roommin,
-                                    startday: 0,
-                                    startmonth: 0,
-                                    endday: 0,
-                                    endmonth: 0,
-                                    dataList: hotels[i])));
-                          },
+                          // onTap: () {
+                          //   Navigator.of(context).push(MaterialPageRoute(
+                          //       builder: (context) => DetailsScreen(
+                          //           rooms:
+                          //               context.watch<SelectedProvider>().rooms,
+                          //           Children: context
+                          //               .watch<SelectedProvider>()
+                          //               .children,
+                          //           Adults: context
+                          //               .watch<SelectedProvider>()
+                          //               .adults,
+                          //           roommin: roommin,
+                          //           startday: 0,
+                          //           startmonth: 0,
+                          //           endday: 0,
+                          //           endmonth: 0,
+                          //           dataList: hotels[i])));
+                          // },
                           child: Container(
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(255, 255, 255, 255),

@@ -1336,8 +1336,7 @@ class _BookState extends State<Book> {
                                                         255, 12, 224, 22),
                                                   ),
                                                   SizedBox(
-                                                    width: 5,
-                                                  ),
+                                                    width: 5,),
                                                   Text(
                                                     ' pool with a view',
                                                     style: TextStyle(
@@ -1359,7 +1358,6 @@ class _BookState extends State<Book> {
                                                     color: Color.fromARGB(
                                                         255, 0, 0, 0)),
                                               ),
-
                                               const Text(
                                                 'Price for 1 night (9 Mar - 10 Mar) ',
                                                 style: TextStyle(

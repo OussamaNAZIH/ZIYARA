@@ -263,7 +263,7 @@ class DetailsScreen extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'hello evrey one hello evrey onehello evrey onehello evrey onehello evrey onehello evrey onehello evrey onehello evrey one',
+                      '',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
