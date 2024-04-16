@@ -211,7 +211,7 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       Text(
                         (roommin! >= rooms!
-                                ? '$roommin room . '
+                                ? '$roommin is minimum  rooms . '
                                 : '$rooms room . ') +
                             (Children == 0
                                 ? '$Adults adults . No children'

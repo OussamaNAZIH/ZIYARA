@@ -56,8 +56,7 @@ class _BookState extends State<Book> {
                   .min, // Pour s'assurer que le Column prend seulement l'espace nécessaire
               children: <Widget>[
                 const Text('Choose Rooms',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text("${widget.dataList['title']}",
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.bold)),

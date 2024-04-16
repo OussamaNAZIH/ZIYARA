@@ -51,7 +51,6 @@ class _HomeState extends State<Home> {
   int? startmonth;
   int? endday;
   int? endmonth;
-  int roommin = 1;
 
   final List<String> _hotelTitles = [];
   FirebaseAuth instance = FirebaseAuth.instance;
@@ -140,7 +139,7 @@ class _HomeState extends State<Home> {
 
   int children = 0;
   int rooms = 1;
-
+  int roommin = 1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -725,27 +724,58 @@ class _HomeState extends State<Home> {
                                         Provider.of<SelectedProvider>(context,
                                             listen: false);
 
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) => SearchScreen(
-                                                startday: startday,
-                                                startmonth: startmonth,
-                                                endday: endday,
-                                                endmonth: endmonth,
-                                                rooms:
-                                                    selectedProvider.children,
-                                                Children:
-                                                    selectedProvider.children,
-                                                Adults: selectedProvider.adults,
-                                                roommin: roommin,
-                                                Controller:
-                                                    DestinationController
-                                                        .text)));
+                                    Navigator.of(context).push(MaterialPageRoute(
+                                        builder: (context) => SearchScreen(
+                                            startday: startday,
+                                            startmonth: startmonth,
+                                            endday: endday,
+                                            endmonth: endmonth,
+                                            rooms: selectedProvider.children,
+                                            Children: selectedProvider.children,
+                                            Adults: selectedProvider.adults,
+                                            roommin: (((context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) ~/
+                                                        2) +
+                                                    ((context.read<SelectedProvider>().adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) %
+                                                        2))
+                                                .toInt(),
+                                            Controller:
+                                                DestinationController.text)));
                                     print(startday);
                                     print(startmonth);
                                     print(endday);
                                     print(endmonth);
-                                    print('roomm valide $roommin');
+                                    print(
+                                      (((context
+                                                          .read<
+                                                              SelectedProvider>()
+                                                          .adults +
+                                                      context
+                                                          .read<
+                                                              SelectedProvider>()
+                                                          .children) ~/
+                                                  2) +
+                                              ((context
+                                                          .read<
+                                                              SelectedProvider>()
+                                                          .adults +
+                                                      context
+                                                          .read<
+                                                              SelectedProvider>()
+                                                          .children) %
+                                                  2))
+                                          .toInt(),
+                                    );
                                     print(context
                                         .read<SelectedProvider>()
                                         .adults);
@@ -801,24 +831,6 @@ class _HomeState extends State<Home> {
                       itemCount: hotels.length,
                       itemBuilder: ((context, int i) {
                         return InkWell(
-                          // onTap: () {
-                          //   Navigator.of(context).push(MaterialPageRoute(
-                          //       builder: (context) => DetailsScreen(
-                          //           rooms:
-                          //               context.watch<SelectedProvider>().rooms,
-                          //           Children: context
-                          //               .watch<SelectedProvider>()
-                          //               .children,
-                          //           Adults: context
-                          //               .watch<SelectedProvider>()
-                          //               .adults,
-                          //           roommin: roommin,
-                          //           startday: 0,
-                          //           startmonth: 0,
-                          //           endday: 0,
-                          //           endmonth: 0,
-                          //           dataList: hotels[i])));
-                          // },
                           child: Container(
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(255, 255, 255, 255),
@@ -860,14 +872,6 @@ class _HomeState extends State<Home> {
                                                   const EdgeInsets.all(6.0),
                                               child: Row(
                                                 children: [
-                                                  // Text(
-                                                  //   "\$${hotels[i]['price'] - (hotels[i]['price'] * (hotels[i]['discount']) / 100)}",
-                                                  //   style: const TextStyle(
-                                                  //       fontWeight:
-                                                  //           FontWeight.bold,
-                                                  //       color: Color.fromARGB(
-                                                  //           255, 0, 0, 0)),
-                                                  // ),
                                                   Text(
                                                     '\$${hotels[i]['price']}/Day',
                                                     style: const TextStyle(
@@ -891,9 +895,6 @@ class _HomeState extends State<Home> {
                                         ],
                                       ),
                                     ),
-                                    // const SizedBox(
-                                    //   height: 40,
-                                    // ),
                                     const Spacer(),
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
@@ -977,7 +978,6 @@ class _HomeState extends State<Home> {
                                         ),
                                       ),
                                     ),
-
                                     const SizedBox(height: 20)
                                   ],
                                 ),
