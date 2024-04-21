@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pfe/Screens/Rooms.dart';
 import 'package:flutter_pfe/Screens/StreetView.dart';
-import 'package:flutter_pfe/controllers/home_controlle.dart';
-import 'package:flutter_pfe/views/home.dart';
-import 'package:get/get.dart';
 
 class DetailsScreen extends StatelessWidget {
   int? startday;
@@ -15,8 +12,16 @@ class DetailsScreen extends StatelessWidget {
   int? Adults;
   int? roommin;
   dynamic dataList;
+  dynamic hotels;
+  String? datefin;
+    String? datedebut;
+
+
   DetailsScreen(
       {super.key,
+      required this.datedebut,
+      required this.datefin,
+      required this.hotels,
       required this.rooms,
       required this.Children,
       required this.Adults,
@@ -49,7 +54,7 @@ class DetailsScreen extends StatelessWidget {
           ),
           onPressed: () {
             Navigator.pop(context);
-            print(dataList);
+            print(hotels);
           },
         ),
         title: const Center(
@@ -247,6 +252,13 @@ class DetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Expanded(
+                //     child: ListView.builder(
+                //         itemCount: 3,
+                //         scrollDirection: Axis.horizontal,
+                //         itemBuilder: (context, index) {
+                //           return const MyCircle();
+                //         })),
                 const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Align(
@@ -442,7 +454,10 @@ class DetailsScreen extends StatelessWidget {
                                     Children: Children,
                                     Adults: Adults,
                                     roommin: roommin,
+                                    datedebut:datedebut,
+                                    datefin:datefin,
                                   )));
+                      print(dataList);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),

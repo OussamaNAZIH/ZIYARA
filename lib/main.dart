@@ -5,24 +5,11 @@ import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/firebase_options.dart';
 import 'package:flutter_pfe/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-
-//   Platform.isAndroid
-//       ? await Firebase.initializeApp(
-//           options: const FirebaseOptions(
-//             apiKey: "AIzaSyD3tu0XD_dluSukTRV2m45amDaQiCGHn5o",
-//             appId: "1:303176017843:android:5a32151136ae15387b8dc6",
-//             messagingSenderId: "303176017843",
-//             projectId: "mypfe-24427",
-//           ),
-//         )
-//       : await Firebase.initializeApp();
-//   runApp(const MyApp());
-// }
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     MultiProvider(
@@ -36,13 +23,29 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  void initialize() async {
+    super.initState();
+    await Future.delayed(Duration(seconds: 2));
+    FlutterNativeSplash.remove();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         supportedLocales: S.delegate.supportedLocales,
         theme: ThemeData(
           bottomSheetTheme: const BottomSheetThemeData(

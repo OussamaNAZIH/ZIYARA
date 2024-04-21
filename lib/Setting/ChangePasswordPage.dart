@@ -51,12 +51,8 @@ class _ChangeState extends State<Change> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        AccountScreen())); // Action lorsqu'on clique sur le bouton de menu
-          },
+              Navigator.pop(context);
+            }
         ),
         actions: [
           PopupMenuButton(

@@ -312,6 +312,12 @@ class detailsRooms extends StatelessWidget {
                                 endmonth: endmonth,
                                 dataList: dataList,
                               )));
+
+                  // Imprimer les données de chaque élément de dataList
+                  // for (var snapshot in dataList) {
+                  //   print(snapshot
+                  //       .data()); // Assurez-vous que `.data()` récupère les données correctement
+                  // }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(10),

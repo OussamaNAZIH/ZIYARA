@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pfe/Screens/Booking.dart';
-import 'package:flutter_pfe/Screens/MyBookingScreen.dart';
+import 'package:flutter_pfe/Screens/TapScreen.dart';
 import 'package:flutter_pfe/Screens/details_rooms.dart';
 
 class Book extends StatefulWidget {
@@ -14,9 +15,12 @@ class Book extends StatefulWidget {
   int? Children;
   int? Adults;
   int? roommin;
-
+  String? datefin;
+  String? datedebut;
   Book(
       {super.key,
+      required this.datedebut,
+      required this.datefin,
       required this.rooms,
       required this.Children,
       required this.Adults,
@@ -32,18 +36,114 @@ class Book extends StatefulWidget {
 }
 
 class _BookState extends State<Book> {
-  late int chamspValue = ((widget.Adults! + widget.Children!) % 2).toInt();
+  late int chamspValue;
+  late int chamdbValue;
+  late int suitesValue = 0;
+  @override
+  void initState() {
+    super.initState();
 
-  late int chamdbValue = ((widget.Adults! + widget.Children!) ~/ 2).toInt();
+    // Calculer les valeurs initiales de chamspValue et chamdbValue
+    chamspValue = ((widget.Adults! + widget.Children!) % 2).toInt();
+    chamdbValue = ((widget.Adults! + widget.Children!) ~/ 2).toInt();
 
-  int suitesValue = 0;
+    // Vérifier si chamdbValue est supérieur à la disponibilité des chamdb
+    if (chamdbValue >= widget.dataList['chamdb']['dispo']) {
+      // Calculer la quantité supplémentaire de chambres simples nécessaires
+      int additionalChamsp =
+          ((chamdbValue - widget.dataList['chamdb']['dispo']) * 2).toInt();
+      chamspValue += additionalChamsp;
+      // Réduire chamdbValue à la disponibilité des chamdb
+      chamdbValue = widget.dataList['chamdb']['dispo'];
+    }
+    if (chamspValue >= widget.dataList['chamsp']['dispo']) {
+      int additionalSuites =
+          (chamspValue - widget.dataList['chamsp']['dispo']) ~/ 2;
+      suitesValue += additionalSuites;
+      chamspValue = widget.dataList['chamsp']['dispo'];
+    }
+    if (suitesValue >= widget.dataList['suites']['dispo']) {
+      suitesValue = widget.dataList['suites']['dispo'];
+    }
+
+    // Mettre à jour les valeurs des variables d'état
+    setState(() {
+      chamspValue = chamspValue;
+      chamdbValue = chamdbValue;
+      suitesValue = suitesValue;
+    });
+    print(' nomber de chamber simple  $chamspValue');
+    print(' nomber de chamber double  $chamdbValue');
+    print(' nomber de chamber suites  $suitesValue');
+  }
 
   calculateTotal() {
     num total = (chamspValue * widget.dataList['chamsp']['price']) +
         (chamdbValue * widget.dataList['chamdb']['price']) +
         (suitesValue * widget.dataList['suites']['price']);
 
-    return 'MAD $total';
+    return '$total';
+  }
+
+  getiduser() {
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user!.uid;
+    return '$userId';
+  }
+
+  void updateDispo(
+      String hotelId, int chamspValue, int chamdbValue, int suitesValue) async {
+    var firestore = FirebaseFirestore.instance;
+
+    var hotelDoc = firestore.collection('hotels').doc(hotelId);
+
+    var snapshot = await hotelDoc.get();
+    if (snapshot.exists) {
+      int currentDispoChamsp = snapshot.data()!['chamsp']['dispo'];
+      int currentreserverChamsp = snapshot.data()!['chamsp']['reserver'];
+
+      int currentDispoChamdb = snapshot.data()!['chamdb']['dispo'];
+      int currentreserverChamdb = snapshot.data()!['chamdb']['reserver'];
+
+      int currentDispoSuite = snapshot.data()!['suites']['dispo'];
+      int currentreserverSuite = snapshot.data()!['suites']['reserver'];
+
+      int newDispoChamsp = currentDispoChamsp - chamspValue;
+      int newReserverChamsp = currentreserverChamsp + chamspValue;
+
+      int newDispoChamdb = currentDispoChamdb - chamdbValue;
+      int newReservrrChamsdb = currentreserverChamdb + chamdbValue;
+
+      int newDispoSuite = currentDispoSuite - suitesValue;
+      int newReserverSuite = currentreserverSuite + suitesValue;
+
+      newDispoChamsp = newDispoChamsp < 0 ? 0 : newDispoChamsp;
+      newReserverChamsp = newReserverChamsp < 0 ? 0 : newReserverChamsp;
+      newDispoChamdb = newDispoChamdb < 0 ? 0 : newDispoChamdb;
+      newReservrrChamsdb = newReservrrChamsdb < 0 ? 0 : newReservrrChamsdb;
+      newDispoSuite = newDispoSuite < 0 ? 0 : newDispoSuite;
+      newReserverSuite = newReserverSuite < 0 ? 0 : newReserverSuite;
+
+      await hotelDoc.update({
+        'chamsp.dispo': newDispoChamsp,
+        'chamsp.reserver': newReserverChamsp,
+        'chamdb.dispo': newDispoChamdb,
+        'chamdb.reserver': newReservrrChamsdb,
+        'suites.dispo': newDispoSuite,
+        'suites.reserver': newReserverSuite
+      }).then((_) {
+        print('Dispo updated to $newDispoChamsp');
+        print('Reserver updated to $newReserverChamsp');
+        print('Reserver updated to $newReservrrChamsdb');
+        print('Dispo updated to $newDispoChamdb');
+        print('Dispo updated to $newDispoSuite');
+        print('Reserver updated to $newReserverSuite');
+      }).catchError((error) {
+        print('Failed to update dispo: $error');
+      });
+    } else {
+      print('Hotel not found!');
+    }
   }
 
   @override
@@ -56,7 +156,8 @@ class _BookState extends State<Book> {
                   .min, // Pour s'assurer que le Column prend seulement l'espace nécessaire
               children: <Widget>[
                 const Text('Choose Rooms',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text("${widget.dataList['title']}",
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.bold)),
@@ -467,19 +568,37 @@ class _BookState extends State<Book> {
                                         ),
                                       ),
                                       DropdownButton<int>(
-                                        // Utilisez dataList['dispo'].length au lieu de dataList['dispo']
                                         items: List.generate(
-                                          widget.dataList['chamsp']['dispo'] -
-                                              widget.dataList['chamsp']
-                                                  ['reserver'],
+                                          (chamspValue >
+                                                  widget.dataList['chamsp']
+                                                      ['dispo'])
+                                              ? 1
+                                              : widget.dataList['chamsp']
+                                                      ['dispo'] +
+                                                  1,
                                           (index) => DropdownMenuItem<int>(
                                             value: index,
-                                            child: Text(
-                                                '$index '), // Pour afficher les nombres à partir de 1
+                                            child: Text('$index'),
                                           ),
                                         ),
                                         // Valeur initiale
-                                        value: chamspValue,
+                                        value:
+                                            //  (chamspValue >
+                                            //         widget.dataList['chamsp']
+                                            //             ['dispo'])
+                                            //     ? 0
+                                            //     : chamdbValue >
+                                            //             widget.dataList['chamdb']
+                                            //                 ['dispo']
+                                            //         ? (chamspValue +
+                                            //                 (chamdbValue -
+                                            //                         widget.dataList[
+                                            //                                 'chamdb']
+                                            //                             ['dispo']) *
+                                            //                     2)
+                                            //             .toInt()
+                                            //         :
+                                            chamspValue,
                                         onChanged: (value) {
                                           // Mettre à jour la valeur sélectionnée
                                           setState(() {
@@ -923,19 +1042,25 @@ class _BookState extends State<Book> {
                                         ),
                                       ),
                                       DropdownButton<int>(
-                                        // Utilisez dataList['dispo'].length au lieu de dataList['dispo']
                                         items: List.generate(
-                                          widget.dataList['chamdb']['dispo'] -
-                                              widget.dataList['chamdb']
-                                                  ['reserver'],
+                                          (chamdbValue >
+                                                  widget.dataList['chamdb']
+                                                      ['dispo'])
+                                              ? 1
+                                              : widget.dataList['chamdb']
+                                                      ['dispo'] +
+                                                  1,
                                           (index) => DropdownMenuItem<int>(
                                             value: index,
-                                            child: Text(
-                                                '$index'), // Pour afficher les nombres à partir de 1
+                                            child: Text('$index'),
                                           ),
                                         ),
                                         // Valeur initiale
-                                        value: chamdbValue,
+                                        value: (chamdbValue >=
+                                                widget.dataList['chamdb']
+                                                    ['dispo'])
+                                            ? widget.dataList['chamdb']['dispo']
+                                            : chamdbValue,
                                         onChanged: (value) {
                                           // Mettre à jour la valeur sélectionnée
                                           setState(() {
@@ -1010,464 +1135,447 @@ class _BookState extends State<Book> {
                           color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: widget.dataList['suites']['dispo'] -
-                                    widget.dataList['suites']['reserver'] ==
-                                0
-                            ? const Padding(
-                                padding: EdgeInsets.all(3.0),
-                                child: Column(
-                                  children: [
-                                    // Votre contenu ici pour le cas où dataList.length == 0
-                                  ],
-                                ),
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                " ${widget.dataList['suites']['title']}",
-                                                style: const TextStyle(
-                                                  color: Color(0xFF06B3C4),
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const Text(
-                                                "Non-refundable",
-                                                style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0),
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.view_in_ar_outlined,
-                                                    size: 20,
-                                                  ),
-                                                  SizedBox(
-                                                    width: 15,
-                                                  ),
-                                                  Text(
-                                                    'No prepayment needed',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                  Text(
-                                                    ' - pay ',
-                                                  ),
-                                                ],
-                                              ),
-                                              const Text(
-                                                  '          the property'),
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons
-                                                        .family_restroom_outlined,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 15,
-                                                  ),
-                                                  Text(
-                                                    'Price for  ${widget.dataList['suites']['nbperson']} adults',
-                                                  ),
-                                                ],
-                                              ),
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.bed_sharp,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 15,
-                                                  ),
-                                                  Text(
-                                                    '${widget.dataList['suites']['beds']} queen bed',
-                                                  ),
-                                                ],
-                                              ),
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons
-                                                        .photo_size_select_small_outlined,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 15,
-                                                  ),
-                                                  Text(
-                                                    'Room size :  ${widget.dataList['suites']['size']}',
-                                                  ),
-                                                ],
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.coffee,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 15,
-                                                  ),
-                                                  Text(
-                                                    'Breakfast avaible,pay at the prorerty',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              // Text(
-                                              //   '          prorerty',
-                                              //   style: TextStyle(
-                                              //       color:
-                                              //           Color.fromARGB(255, 12, 224, 22)),
-                                              // ),
-
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.wifi,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Free wifi ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.check,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Balcony ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.local_florist_rounded,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Granden view',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.pool,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Pool view ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.location_city,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'City view ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.check,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Minibar',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.ac_unit_rounded,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Air conditiong  ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.bathtub_outlined,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Private Bathroom ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.tv,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Flat-screen TV ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons
-                                                        .integration_instructions_sharp,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Soundproof ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.check,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text(
-                                                    'Coffee machine ',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                  Icon(
-                                                    Icons.check,
-                                                    size: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 12, 224, 22),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 5,),
-                                                  Text(
-                                                    ' pool with a view',
-                                                    style: TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 12, 224, 22)),
-                                                  ),
-                                                ],
-                                              ),
-                                              Text(
-                                                'reserver : ${widget.dataList['suites']['reserver']} ',
-                                                style: const TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
-                                              ),
-
-                                              Text(
-                                                'dispo : ${2 - widget.dataList['suites']['reserver']} ',
-                                                style: const TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
-                                              ),
-                                              const Text(
-                                                'Price for 1 night (9 Mar - 10 Mar) ',
-                                                style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
-                                              ),
-                                              Text(
-                                                'MAD  ${widget.dataList['suites']['price']} ',
-                                                style: const TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0),
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              const Text(
-                                                '+MAD 99 taxes and fees',
-                                                style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
-                                              ),
-                                            ],
+                                        Text(
+                                          " ${widget.dataList['suites']['title']}",
+                                          style: const TextStyle(
+                                            color: Color(0xFF06B3C4),
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const Spacer(),
-                                        Column(
+                                        const Text(
+                                          "Non-refundable",
+                                          style: TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const Row(
                                           children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: ColorFiltered(
-                                                colorFilter: ColorFilter.mode(
-                                                  Colors.black.withOpacity(0.2),
-                                                  BlendMode.srcATop,
-                                                ),
-                                                child: Image.asset(
-                                                  'images/sofitel.jpg',
-                                                  width: 60,
-                                                ),
-                                              ),
+                                            Icon(
+                                              Icons.view_in_ar_outlined,
+                                              size: 20,
                                             ),
-                                            DropdownButton<int>(
-                                              items: [
-                                                // Créer un élément pour la valeur 0
-                                                const DropdownMenuItem<int>(
-                                                  value: 0,
-                                                  child: Text('0'),
-                                                ),
-                                                // Générer dynamiquement les autres éléments
-                                                ...List.generate(
-                                                  widget.dataList['suites']
-                                                          ['dispo'] -
-                                                      widget.dataList['suites']
-                                                          ['reserver'],
-                                                  (index) =>
-                                                      DropdownMenuItem<int>(
-                                                    value: index + 1,
-                                                    child: Text('${index + 1}'),
-                                                  ),
-                                                ),
-                                              ],
-                                              value: suitesValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  suitesValue = value!;
-                                                });
-                                                print(
-                                                    'Vous avez sélectionné la valeur : $value et la valeur de $suitesValue ');
-                                              },
+                                            SizedBox(
+                                              width: 15,
+                                            ),
+                                            Text(
+                                              'No prepayment needed',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              ' - pay ',
                                             ),
                                           ],
                                         ),
+                                        const Text('          the property'),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.family_restroom_outlined,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(
+                                              width: 15,
+                                            ),
+                                            Text(
+                                              'Price for  ${widget.dataList['suites']['nbperson']} adults',
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.bed_sharp,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(
+                                              width: 15,
+                                            ),
+                                            Text(
+                                              '${widget.dataList['suites']['beds']} queen bed',
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons
+                                                  .photo_size_select_small_outlined,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(
+                                              width: 15,
+                                            ),
+                                            Text(
+                                              'Room size :  ${widget.dataList['suites']['size']}',
+                                            ),
+                                          ],
+                                        ),
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.coffee,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 15,
+                                            ),
+                                            Text(
+                                              'Breakfast avaible,pay at the prorerty',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        // Text(
+                                        //   '          prorerty',
+                                        //   style: TextStyle(
+                                        //       color:
+                                        //           Color.fromARGB(255, 12, 224, 22)),
+                                        // ),
+
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.wifi,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Free wifi ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.check,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Balcony ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.local_florist_rounded,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Granden view',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.pool,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Pool view ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.location_city,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'City view ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.check,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Minibar',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.ac_unit_rounded,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Air conditiong  ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.bathtub_outlined,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Private Bathroom ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.tv,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Flat-screen TV ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons
+                                                  .integration_instructions_sharp,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Soundproof ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.check,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Coffee machine ',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                            Icon(
+                                              Icons.check,
+                                              size: 20,
+                                              color: Color.fromARGB(
+                                                  255, 12, 224, 22),
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              ' pool with a view',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 12, 224, 22)),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          'reserver : ${widget.dataList['suites']['reserver']} ',
+                                          style: const TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0)),
+                                        ),
+
+                                        Text(
+                                          'dispo : ${2 - widget.dataList['suites']['reserver']} ',
+                                          style: const TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0)),
+                                        ),
+                                        const Text(
+                                          'Price for 1 night (9 Mar - 10 Mar) ',
+                                          style: TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0)),
+                                        ),
+                                        Text(
+                                          'MAD  ${widget.dataList['suites']['price']} ',
+                                          style: const TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const Text(
+                                          '+MAD 99 taxes and fees',
+                                          style: TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0)),
+                                        ),
                                       ],
                                     ),
-
-                                    // InkWell(
-                                    //   onTap: () {
-                                    //     Navigator.push(
-                                    //         context,
-                                    //         MaterialPageRoute(
-                                    //             builder: (context) =>
-                                    //                 detailsRooms(
-                                    //                   startday: widget.startday,
-                                    //                   startmonth:
-                                    //                       widget.startmonth,
-                                    //                   endday: widget.endday,
-                                    //                   endmonth: widget.endmonth,
-                                    //                   dataList: widget.dataList,
-                                    //                   roomData: widget
-                                    //                       .dataList['suites'],
-                                    //                 )));
-                                    //     print(widget.dataList['suites']);
-                                    //   },
-                                    //   child: Container(
-                                    //     padding: const EdgeInsets.all(10),
-                                    //     decoration: BoxDecoration(
-                                    //       borderRadius:
-                                    //           BorderRadius.circular(20),
-                                    //       color: const Color(0xFF06B3C4),
-                                    //     ),
-                                    //     child: const Center(
-                                    //         child: Text('Select',
-                                    //             style: TextStyle(
-                                    //                 color: Color.fromARGB(
-                                    //                     255, 255, 255, 255),
-                                    //                 fontWeight:
-                                    //                     FontWeight.bold))),
-                                    //   ),
-                                    // ),
-                                  ],
-                                ),
+                                  ),
+                                  const Spacer(),
+                                  Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: ColorFiltered(
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.black.withOpacity(0.2),
+                                            BlendMode.srcATop,
+                                          ),
+                                          child: Image.asset(
+                                            'images/sofitel.jpg',
+                                            width: 60,
+                                          ),
+                                        ),
+                                      ),
+                                      DropdownButton<int>(
+                                        items: List.generate(
+                                          (suitesValue >
+                                                  widget.dataList['suites']
+                                                      ['dispo'])
+                                              ? 1
+                                              : widget.dataList['suites']
+                                                      ['dispo'] +
+                                                  1,
+                                          (index) => DropdownMenuItem<int>(
+                                            value: index,
+                                            child: Text('$index'),
+                                          ),
+                                        ),
+                                        // Valeur initiale
+                                        value: (suitesValue >
+                                                widget.dataList['suites']
+                                                    ['dispo'])
+                                            ? 0
+                                            : suitesValue,
+                                        onChanged: (value) {
+                                          // Mettre à jour la valeur sélectionnée
+                                          setState(() {
+                                            suitesValue = value!;
+                                          });
+                                          // Faire quelque chose avec la valeur sélectionnée
+                                          print(
+                                              'Vous avez sélectionné la valeur : $value');
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
+
+                              // InkWell(
+                              //   onTap: () {
+                              //     Navigator.push(
+                              //         context,
+                              //         MaterialPageRoute(
+                              //             builder: (context) =>
+                              //                 detailsRooms(
+                              //                   startday: widget.startday,
+                              //                   startmonth:
+                              //                       widget.startmonth,
+                              //                   endday: widget.endday,
+                              //                   endmonth: widget.endmonth,
+                              //                   dataList: widget.dataList,
+                              //                   roomData: widget
+                              //                       .dataList['suites'],
+                              //                 )));
+                              //     print(widget.dataList['suites']);
+                              //   },
+                              //   child: Container(
+                              //     padding: const EdgeInsets.all(10),
+                              //     decoration: BoxDecoration(
+                              //       borderRadius:
+                              //           BorderRadius.circular(20),
+                              //       color: const Color(0xFF06B3C4),
+                              //     ),
+                              //     child: const Center(
+                              //         child: Text('Select',
+                              //             style: TextStyle(
+                              //                 color: Color.fromARGB(
+                              //                     255, 255, 255, 255),
+                              //                 fontWeight:
+                              //                     FontWeight.bold))),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1570,17 +1678,50 @@ class _BookState extends State<Book> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => detailsRooms(
-                                      startday: widget.startday,
-                                      startmonth: widget.startmonth,
-                                      endday: widget.endday,
-                                      endmonth: widget.endmonth,
-                                      dataList: widget.dataList,
-                                      roomData: widget.dataList['chamsp'],
-                                    )));
+                        if ((widget.Adults! + widget.Children!) >
+                            (chamspValue +
+                                (chamdbValue * 2) +
+                                (suitesValue * 2))) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              duration: Duration(seconds: 6),
+                              backgroundColor: Color.fromARGB(255, 181, 22, 22),
+                              content: Text(
+                                'You still need to fit ${(widget.Adults! + widget.Children!) - (chamspValue + (chamdbValue * 2) + (suitesValue * 2))} more Personnes. Check how many guests the available options can sleep.',
+                                style: TextStyle(fontSize: 20),
+                              )));
+                        } else {
+                          CollectionReference collRef = FirebaseFirestore
+                              .instance
+                              .collection('reservation');
+                          collRef.add({
+                            'userid': getiduser(),
+                            'hotelId': widget.dataList['hotelid'],
+                            'startday': widget.startday,
+                            'startmonth': widget.startmonth,
+                            'endday': widget.endday,
+                            'endmonth': widget.endmonth,
+                            'rooms': suitesValue + chamspValue + chamdbValue,
+                            'Children': widget.Children,
+                            'Adults': widget.Adults,
+                            'chamdbValue': chamdbValue,
+                            'chamspValue': chamspValue,
+                            'suitesValue': suitesValue,
+                            'title': widget.dataList['title'],
+                            'adresse': widget.dataList['adresse'],
+                            'rating': widget.dataList['rating'],
+                            'reviews': widget.dataList['reviews'],
+                            'price': calculateTotal(),
+                            'photo': widget.dataList['photos']['photo3'],
+                            'datedebut': widget.datedebut,
+                            'datefin': widget.datefin,
+                          });
+                          updateDispo(widget.dataList['hotelid'], chamspValue,
+                              chamdbValue, suitesValue);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => TabScreen()));
+                        }
                       },
                       child: Container(
                         width: double

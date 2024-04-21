@@ -23,8 +23,8 @@ class _FormeState extends State<Forme> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            // Action lorsqu'on clique sur le bouton de menu
-          },
+              Navigator.pop(context);
+            }
         ),
         actions: [
           PopupMenuButton(

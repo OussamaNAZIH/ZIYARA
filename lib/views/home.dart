@@ -1,13 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pfe/controllers/home_controlle.dart';
-import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
-import 'package:get/get.dart';
-import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   int? startday;
@@ -18,9 +13,17 @@ class SearchScreen extends StatefulWidget {
   int? Children;
   int? Adults;
   int? roommin;
+  dynamic hotels;
+  String? datedebut;
+    String? datefin;
+
+
   final String Controller;
   SearchScreen(
       {super.key,
+      required this.hotels,
+      required this.datefin,
+      required this.datedebut,
       required this.rooms,
       required this.Children,
       required this.Adults,
@@ -184,19 +187,25 @@ class _SearchScreenState extends State<SearchScreen> {
                       onTap: () {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => DetailsScreen(
-                                rooms: widget.rooms,
-                                Children: widget.Children,
-                                Adults: widget.Adults,
-                                roommin: widget.roommin,
-                                startday: widget.startday,
-                                startmonth: widget.startmonth,
-                                endday: widget.endday,
-                                endmonth: widget.endmonth,
-                                dataList: data)));
+                                  rooms: widget.rooms,
+                                  Children: widget.Children,
+                                  Adults: widget.Adults,
+                                  roommin: widget.roommin,
+                                  startday: widget.startday,
+                                  startmonth: widget.startmonth,
+                                  endday: widget.endday,
+                                  endmonth: widget.endmonth,
+                                  dataList: data,
+                                  hotels: _Results,
+                                  datedebut:widget.datedebut,
+                                  datefin:widget.datefin,
+                                )));
                         print(widget.startday);
                         print(widget.startmonth);
                         print(widget.endday);
                         print(widget.endmonth);
+                        print(_Results);
+                        print(widget.hotels);
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

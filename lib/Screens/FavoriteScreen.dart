@@ -16,6 +16,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         backgroundColor: Colors.white,
         title: const Center(
             child: Text('My Favorite', style: TextStyle(fontSize: 22))),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(
+              1.0), // Taille préférée de la barre de délimitation
+          child: Divider(
+            color: Color.fromARGB(255, 219, 219, 219),
+            height: 1.0,
+          ),
+        ),
       ),
       body: const SingleChildScrollView(),
     );
