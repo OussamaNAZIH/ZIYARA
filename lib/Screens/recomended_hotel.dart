@@ -94,27 +94,6 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
             ]),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          // onTap: () {
-          //   Navigator.of(context).push(MaterialPageRoute(
-          //       builder: (context) => DetailsScreen(
-          //             rooms: widget.rooms,
-          //             Children: widget.Children,
-          //             Adults: widget.Adults,
-          //             roommin: widget.roommin,
-          //             startday: widget.startday,
-          //             startmonth: widget.startmonth,
-          //             endday: widget.endday,
-          //             endmonth: widget.endmonth,
-          //             dataList: data,
-          //             hotels: _Results,
-          //           )));
-          //   print(widget.startday);
-          //   print(widget.startmonth);
-          //   print(widget.endday);
-          //   print(widget.endmonth);
-          //   print(_Results);
-          //   print(widget.hotels);
-          // },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

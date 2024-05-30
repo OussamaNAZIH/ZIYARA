@@ -417,18 +417,18 @@ class _RegistrationState extends State<Registration> {
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.network(
-                            'http://pngimg.com/uploads/google/google_PNG19635.png',
-                            height: 60,
-                            width: 60,
+                          Image.asset(
+                            'images/1199414.png',
+                            height: 50,
+                            width: 50,
                           ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          Image.network(
-                            'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
-                            height: 40,
-                            width: 40,
+                          // const SizedBox(
+                          //   width: 20,
+                          // ),
+                          Image.asset(
+                            'images/Facebook.png',
+                            height: 95,
+                            width: 95,
                           ),
                         ]),
                   ),

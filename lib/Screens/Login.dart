@@ -55,50 +55,91 @@ class _LoginState extends State<Login> {
     try {
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const TabScreen()));
-    } on FirebaseException catch (e) {
+        context,
+        MaterialPageRoute(builder: (context) => const TabScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message;
+      print('FirebaseAuthException code: ${e.code}');
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Color.fromARGB(255, 255, 0, 0),
-            content: Text(
-              'No User Found for that Email',
-              style: TextStyle(fontSize: 20),
-            )));
+        message = 'No User Found for that Email';
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Color.fromARGB(255, 255, 0, 0),
-            content: Text(
-              'Wrong Password Provided by User',
-              style: TextStyle(fontSize: 20),
-            )));
+        message = 'Wrong Password Provided by User';
+      } else if (e.code == 'invalid-email') {
+        message = 'Invalid Email';
+      } else {
+        message = 'Check Your Password or Your Adress Email';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color.fromARGB(255, 255, 17, 0),
+          content: Text(
+            message,
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Unexpected error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(
+            'An unexpected error occurred',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      );
     }
   }
 
   final _formke = GlobalKey<FormState>();
-  forgetpassword() async {
+  Future<void> forgetPassword() async {
     try {
-      await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          backgroundColor: Color.fromARGB(255, 22, 181, 35),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color.fromARGB(255, 0, 255, 8),
           content: Text(
-            'Password sent',
+            'Password reset email sent',
             style: TextStyle(fontSize: 20),
-          )));
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const MapsScreen()));
+          ),
+        ),
+      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const MapsScreen()),
+      // );
     } on FirebaseAuthException catch (e) {
+      String message;
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Color.fromARGB(255, 181, 22, 22),
-            content: Text(
-              'No User Found for that Email',
-              style: TextStyle(fontSize: 20),
-            )));
+        message = 'No User Found for that Email';
+      } else if (e.code == 'invalid-email') {
+        message = 'Invalid Email Address';
+      } else {
+        message = 'user-not-found';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color.fromARGB(255, 255, 17, 0),
+          content: Text(
+            message,
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Unexpected error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color.fromARGB(255, 255, 17, 0),
+          content: Text(
+            'user-not-found',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      );
     }
   }
 
@@ -235,145 +276,116 @@ class _LoginState extends State<Login> {
                       child: InkWell(
                         onTap: () {
                           showModalBottomSheet(
-                              isScrollControlled: true,
-                              context: context,
-                              builder: (context) => Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 25),
-                                    child: SingleChildScrollView(
-                                      child: Padding(
-                                          padding: EdgeInsets.only(
-                                              bottom: MediaQuery.of(context)
-                                                  .viewInsets
-                                                  .bottom),
-                                          child: Form(
-                                            key: _formke,
-                                            child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 30,
+                            isScrollControlled: true,
+                            context: context,
+                            builder: (context) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 25),
+                              child: SingleChildScrollView(
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context)
+                                          .viewInsets
+                                          .bottom),
+                                  child: Form(
+                                    key: _formke,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        const SizedBox(height: 30),
+                                        const Text(
+                                          'Forgot Password',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 25,
+                                              color: Colors.black),
+                                        ),
+                                        Text(
+                                          'Enter your Email',
+                                          style: TextStyle(
+                                              color: Colors.grey[500]),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        const Text(
+                                          'Email',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            color: Colors.grey[50],
+                                          ),
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Please Enter Your Email';
+                                              }
+                                              return null;
+                                            },
+                                            controller: _mailController,
+                                            decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                prefixIcon: Icon(
+                                                  Icons.email_outlined,
+                                                  color: mailTextFieldEmpty
+                                                      ? Colors.grey[400]
+                                                      : const Color(0xFF06B3C4),
+                                                ),
+                                                hintText: 'Enter your email',
+                                                hintStyle: TextStyle(
+                                                  color: Colors.grey[500],
+                                                )),
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 25),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 15),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              if (_formke.currentState!
+                                                  .validate()) {
+                                                email = _mailController.text;
+                                                // Fermer le showModalBottomSheet avant d'appeler forgetPassword
+                                                Navigator.pop(context);
+                                                forgetPassword();
+                                              }
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(18),
+                                                color: const Color(0xFF06B3C4),
+                                              ),
+                                              child: const Center(
+                                                child: Text(
+                                                  'Send Code',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
                                                   ),
-                                                  const Text(
-                                                    'Forgot Password',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 25,
-                                                        color: Colors.black),
-                                                  ),
-                                                  Text(
-                                                    'Enter your Email',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Colors.grey[500]),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 20,
-                                                  ),
-                                                  const Text(
-                                                    'Email',
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              30),
-                                                      color: Colors.grey[50],
-                                                    ),
-                                                    child: TextFormField(
-                                                      validator: (value) {
-                                                        if (value == null ||
-                                                            value.isEmpty) {
-                                                          return 'Please Enter Your Email';
-                                                        }
-                                                        return null;
-                                                      },
-                                                      controller:
-                                                          _mailController,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              prefixIcon: Icon(
-                                                                Icons
-                                                                    .email_outlined,
-                                                                color: mailTextFieldEmpty
-                                                                    ? Colors.grey[
-                                                                        400]
-                                                                    : const Color(
-                                                                        0xFF06B3C4),
-                                                              ),
-                                                              hintText:
-                                                                  'Enter your email',
-                                                              hintStyle:
-                                                                  TextStyle(
-                                                                color: Colors
-                                                                    .grey[500],
-                                                              )),
-                                                      keyboardType:
-                                                          TextInputType
-                                                              .emailAddress,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 25,
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 15),
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        if (_formke
-                                                            .currentState!
-                                                            .validate()) {
-                                                          email =
-                                                              _mailController
-                                                                  .text;
-                                                        }
-                                                        forgetpassword();
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(18),
-                                                          color: const Color(
-                                                              0xFF06B3C4),
-                                                        ),
-                                                        child: const Center(
-                                                            child: Text(
-                                                                'Send Code',
-                                                                style:
-                                                                    TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                ))),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 25,
-                                                  ),
-                                                ]),
-                                          )),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 25),
+                                      ],
                                     ),
-                                  ));
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
                         },
                         child: const Text(
                           'Forgot Password',
@@ -428,18 +440,18 @@ class _LoginState extends State<Login> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.network(
-                              'http://pngimg.com/uploads/google/google_PNG19635.png',
-                              height: 60,
-                              width: 60,
+                            Image.asset(
+                              'images/1199414.png',
+                              height: 50,
+                              width: 50,
                             ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Image.network(
-                              'https://www.edigitalagency.com.au/wp-content/uploads/Facebook-logo-blue-circle-large-transparent-png.png',
-                              height: 40,
-                              width: 40,
+                            // const SizedBox(
+                            //   width: 20,
+                            // ),
+                            Image.asset(
+                              'images/Facebook.png',
+                              height: 95,
+                              width: 95,
                             ),
                           ]),
                     ),

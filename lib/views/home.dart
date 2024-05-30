@@ -15,8 +15,7 @@ class SearchScreen extends StatefulWidget {
   int? roommin;
   dynamic hotels;
   String? datedebut;
-    String? datefin;
-
+  String? datefin;
 
   final String Controller;
   SearchScreen(
@@ -46,6 +45,7 @@ class _SearchScreenState extends State<SearchScreen> {
   int maxPrice = 1000;
   double minRating = 0;
   double maxRating = 5;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -73,6 +73,7 @@ class _SearchScreenState extends State<SearchScreen> {
       showResultats = List.from(_allResults);
     }
     setState(() {
+      isLoading = false;
       _Results = showResultats;
     });
   }
@@ -99,6 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     setState(() {
+      isLoading = false;
       _allResults = filteredByPrice;
     });
     searchResultatList();
@@ -129,7 +131,8 @@ class _SearchScreenState extends State<SearchScreen> {
       minPrice = selectedMinPrice; // Mettre à jour minPrice
       maxPrice = selectedMaxPrice;
       minRating = selectedminRating;
-      maxRating = selectedmaxRating; // Mettre à jour maxPrice
+      maxRating = selectedmaxRating;
+      isLoading = false; // Mettre à jour maxPrice
     });
     print(maxPrice);
   }
@@ -141,147 +144,159 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     // int adults = context.watch<SelectedProvider>().children;
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: CupertinoSearchTextField(
-          controller: TextController,
-        ),
-        actions: [
-          InkWell(
-            onTap: () {
-              showFilterModal(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Icon(Icons.filter_list),
+    return isLoading
+        ? Center(
+            child: CircularProgressIndicator(
+            color: Color(0xFF06B3C4),
+          )) // Afficher un indicateur de chargement
+        : Scaffold(
+            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              title: CupertinoSearchTextField(
+                controller: TextController,
+              ),
+              actions: [
+                InkWell(
+                  onTap: () {
+                    showFilterModal(context);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Icon(Icons.filter_list),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-      body: Container(
-        child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 9 / 13),
-              itemCount: _Results.length,
-              itemBuilder: (context, i) {
-                var data = _Results[i];
-                return Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 5,
-                              offset: const Offset(3, 3)),
-                        ]),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(20),
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => DetailsScreen(
-                                  rooms: widget.rooms,
-                                  Children: widget.Children,
-                                  Adults: widget.Adults,
-                                  roommin: widget.roommin,
-                                  startday: widget.startday,
-                                  startmonth: widget.startmonth,
-                                  endday: widget.endday,
-                                  endmonth: widget.endmonth,
-                                  dataList: data,
-                                  hotels: _Results,
-                                  datedebut:widget.datedebut,
-                                  datefin:widget.datefin,
-                                )));
-                        print(widget.startday);
-                        print(widget.startmonth);
-                        print(widget.endday);
-                        print(widget.endmonth);
-                        print(_Results);
-                        print(widget.hotels);
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                '${data['photos']['photo3']}',
-                              ),
-                            ),
-                          ]),
-                          // const SizedBox(
-                          //   height: 15,
-                          // ),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                    "⭐${data['rating']} (${data['reviews']})"),
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              "${data['title']}",
-                              style: const TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              "${data['adresse']}",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Row(
+            body: Container(
+              child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 9 / 13),
+                    itemCount: _Results.length,
+                    itemBuilder: (context, i) {
+                      var data = _Results[i];
+                      return Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.shade300,
+                                    blurRadius: 5,
+                                    offset: const Offset(3, 3)),
+                              ]),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => DetailsScreen(
+                                        rooms: widget.rooms,
+                                        Children: widget.Children,
+                                        Adults: widget.Adults,
+                                        roommin: widget.roommin,
+                                        startday: widget.startday,
+                                        startmonth: widget.startmonth,
+                                        endday: widget.endday,
+                                        endmonth: widget.endmonth,
+                                        dataList: data,
+                                        hotels: _Results,
+                                        datedebut: widget.datedebut,
+                                        datefin: widget.datefin,
+                                      )));
+                              print(widget.startday);
+                              print(widget.startmonth);
+                              print(widget.endday);
+                              print(widget.endmonth);
+                              print(_Results);
+                              print(data);
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "\$${(data['price'] - (data['price'] * (data['discount']) / 100)).round()}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 20,
-                                    color: Color.fromARGB(255, 0, 0, 0),
+                                Stack(children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      '${data['photos']['photo3']}',
+                                    ),
+                                  ),
+                                ]),
+                                // const SizedBox(
+                                //   height: 15,
+                                // ),
+                                Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                          "⭐${data['rating']} (${data['reviews']})"),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Text(
+                                    "${data['title']}",
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900),
                                   ),
                                 ),
-                                const SizedBox(
-                                  width: 5,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Text(
+                                    "${data['adresse']}",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
                                 ),
-                                Text(
-                                  "\$${data['price']}",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                      color: Color.fromARGB(255, 255, 0, 0),
-                                      decoration: TextDecoration.lineThrough),
-                                )
+
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "\$${(data['price'] - (data['price'] * (data['discount']) / 100)).round()}",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 20,
+                                          color: Color.fromARGB(255, 0, 0, 0),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text(
+                                        "\$${data['price']}",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12,
+                                            color:
+                                                Color.fromARGB(255, 255, 0, 0),
+                                            decoration:
+                                                TextDecoration.lineThrough),
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ));
-              },
-            )),
-      ),
-    );
+                          ));
+                    },
+                  )),
+            ),
+          );
   }
 
   void showFilterModal(BuildContext context) {

@@ -45,14 +45,16 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
         debugShowCheckedModeBanner: false,
         supportedLocales: S.delegate.supportedLocales,
         theme: ThemeData(
+                primaryColor: Color(0xFF06B3C4), // Utilisation de la couleur demandée pour le thème général
           bottomSheetTheme: const BottomSheetThemeData(
             backgroundColor:
                 Color.fromARGB(255, 255, 255, 255), // Changez la couleur ici
           ),
         ),
-        home: const TabScreen());
+        home:  TabScreen());
   }
 }

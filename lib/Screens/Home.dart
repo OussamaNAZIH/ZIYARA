@@ -1,14 +1,47 @@
+import 'dart:async';
+import 'dart:math';
+import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pfe/Moduls/SplashScreen.dart';
+import 'package:flutter_pfe/Moduls/nearby.dart';
 import 'package:flutter_pfe/Screens/recomended_hotel.dart';
-import 'package:flutter_pfe/Setting/setting.dart';
 import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/views/home.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+
+class Hotel {
+  final String title;
+  final double latitude;
+  final double longitude;
+  final double rating;
+  final int reviews;
+  final String adresse;
+  final int price;
+  final int discount;
+  final String photo1;
+  final String photo2;
+  final String photo3;
+
+  Hotel({
+    required this.title,
+    required this.latitude,
+    required this.longitude,
+    required this.rating,
+    required this.reviews,
+    required this.adresse,
+    required this.price,
+    required this.discount,
+    required this.photo1,
+    required this.photo2,
+    required this.photo3,
+  });
+}
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,15 +52,14 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isLoading = true;
-
   List hotels = [];
-  CollectionReference Hotelref =
-      FirebaseFirestore.instance.collection("hotels");
+  CollectionReference Hotelref = FirebaseFirestore.instance.collection("hotels");
+
   getData() async {
     var responsebody = await Hotelref.orderBy('rating', descending: true).get();
-    for (var element in responsebody.docs) {
+    if (mounted) {
       setState(() {
-        hotels.add(element.data());
+        hotels = responsebody.docs.map((doc) => doc.data()).toList();
         isLoading = false;
       });
     }
@@ -43,14 +75,17 @@ class _HomeState extends State<Home> {
           .doc(user.uid)
           .get();
 
-      setState(() {
-        _userName = userData['username'];
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _userName = userData['username'];
+          isLoading = false;
+        });
+      }
     }
   }
 
   List<String> _titles = [];
+  late Timer _locationUpdateTimer;
 
   int? startday;
   int? startmonth;
@@ -81,29 +116,41 @@ class _HomeState extends State<Home> {
   late TextEditingController DestinationController;
 
   final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
     _getCurrentUser();
     _fetchTitlesAndAddresses();
+    _requestPermissionAndGetLocation();
+    _locationUpdateTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+      _requestPermissionAndGetLocation();
+      _getCurrentLocation(); // Actualise la position toutes les 10 minutes
+    });
 
     DestinationController = TextEditingController();
 
     getData();
     DestinationController.addListener(() {
-      setState(() {
-        _DestinationController = DestinationController.text.isEmpty;
-      });
+      if (mounted) {
+        setState(() {
+          _DestinationController = DestinationController.text.isEmpty;
+        });
+      }
     });
     durationController.addListener(() {
-      setState(() {
-        _mailTextFieldEmpty = durationController.text.isEmpty;
-      });
+      if (mounted) {
+        setState(() {
+          _mailTextFieldEmpty = durationController.text.isEmpty;
+        });
+      }
     });
     isGuestEnteredController.addListener(() {
-      setState(() {
-        _isGuestEnteredControllerEmpty = isGuestEnteredController.text.isEmpty;
-      });
+      if (mounted) {
+        setState(() {
+          _isGuestEnteredControllerEmpty = isGuestEnteredController.text.isEmpty;
+        });
+      }
     });
     instance.authStateChanges().listen((User? user) {
       if (user == null) {
@@ -111,6 +158,12 @@ class _HomeState extends State<Home> {
             MaterialPageRoute(builder: (context) => const SplashScreen()));
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _locationUpdateTimer.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchTitlesAndAddresses() async {
@@ -135,10 +188,12 @@ class _HomeState extends State<Home> {
         }
       }
 
-      setState(() {
-        _titles = titlesAndAddresses;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _titles = titlesAndAddresses;
+          isLoading = false;
+        });
+      }
     } catch (e) {
       print('Error fetching titles and addresses: $e');
     }
@@ -147,6 +202,125 @@ class _HomeState extends State<Home> {
   int children = 0;
   int rooms = 1;
   int roommin = 1;
+  String? userAddress;
+  Position? currentPosition;
+  List<Hotel> nearbys = [];
+  Future<void> _requestPermissionAndGetLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Autorisation requise'),
+          content: Text(
+              'Veuillez autoriser l\'accès à la position pour afficher les hôtels à proximité.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else if (permission == LocationPermission.deniedForever) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Autorisation refusée'),
+          content: Text(
+              'Vous avez définitivement refusé l\'accès à la position. Pour activer l\'accès, veuillez aller dans les paramètres de l\'application.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      _getCurrentLocation();
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      if (mounted) {
+        setState(() {
+          currentPosition = position;
+          isLoading = false;
+        });
+      }
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            userAddress = '${placemarks.first.name},${placemarks.first.country}';
+          });
+        }
+      }
+      _fetchHotelsFromFirebase();
+    } catch (e) {
+      print("Erreur lors de la récupération de la position: $e");
+    }
+  }
+
+  Future<void> _fetchHotelsFromFirebase() async {
+    QuerySnapshot hotelSnapshot =
+        await FirebaseFirestore.instance.collection('hotels').get();
+
+    if (mounted) {
+      setState(() {
+        nearbys = hotelSnapshot.docs.map((doc) {
+          return Hotel(
+            title: doc['title'],
+            latitude: (doc['latitude'] as num).toDouble(),
+            longitude: (doc['longitude'] as num).toDouble(),
+            rating: (doc['rating'] as num).toDouble(),
+            reviews: doc['reviews'] as int,
+            adresse: doc['adresse'],
+            price: doc['chamsp']['price'] as int,
+            discount: doc['discount'] as int,
+            photo1: doc['photos']['photo1'],
+            photo2: doc['photos']['photo2'],
+            photo3: doc['photos']['photo3'],
+          );
+        }).toList();
+        if (currentPosition != null) {
+          nearbys.sort((hotel1, hotel2) {
+            double distance1 = _calculateDistance(currentPosition!.latitude,
+                currentPosition!.longitude, hotel1.latitude, hotel1.longitude);
+            double distance2 = _calculateDistance(currentPosition!.latitude,
+                currentPosition!.longitude, hotel2.latitude, hotel2.longitude);
+            return distance1.compareTo(distance2);
+          });
+        }
+        isLoading = false;
+      });
+    }
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double R = 6371;
+    double dLat = _toRadians(lat2 - lat1);
+    double dLon = _toRadians(lon2 - lon1);
+    double a = pow(sin(dLat / 2), 2) +
+        cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * pow(sin(dLon / 2), 2);
+    double c = 2 * asin(sqrt(a));
+    return R * c;
+  }
+
+  double _toRadians(double degree) {
+    return degree * (pi / 180);
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -184,71 +358,24 @@ class _HomeState extends State<Home> {
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            const Row(
+                            Row(
                               children: [
                                 Icon(
                                   Icons.location_on_rounded,
                                   color: Colors.grey,
                                 ),
-                                Text('Chestnut StreetRome,NY'),
+                                Center(
+                                  child: Text(
+                                    userAddress ?? '',
+                                    softWrap: true,
+                                    maxLines: 2,
+                                  ),
+                                ),
                               ],
                             )
                           ],
                         ),
                         const Spacer(),
-                        Container(
-                          clipBehavior: Clip
-                              .none, // Cela permet aux éléments de déborder visuellement.
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Stack(
-                            clipBehavior: Clip
-                                .none, // Assurez-vous que rien n'est rogné à l'intérieur du Stack
-                            children: [
-                              Positioned(
-                                top:
-                                    -12, // Ajustez selon le besoin pour bien positionner le '+'
-                                right:
-                                    -7, // Décalez vers l'extérieur du container
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                      6), // Augmenter le padding pour un plus grand '+'
-                                  decoration: BoxDecoration(
-                                    color: Colors
-                                        .green, // Couleur de fond pour le '+'
-                                    shape:
-                                        BoxShape.circle, // Pour un look arrondi
-                                  ),
-                                  child: Text(
-                                    '+',
-                                    style: TextStyle(
-                                      fontSize:
-                                          15, // Taille plus grande pour le '+'
-                                      color: Colors.white, // Couleur du texte
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.wallet),
-                                    Text(
-                                      ' 0 \$',
-                                      style: TextStyle(
-                                        color: Color.fromARGB(255, 0, 0, 0),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(
@@ -378,6 +505,40 @@ class _HomeState extends State<Home> {
                                     onTap: () async {
                                       final DateTimeRange? dateTimeRange =
                                           await showDateRangePicker(
+                                              barrierColor: Color(0xFF06B3C4),
+                                              builder:
+                                                  (context, Widget? child) {
+                                                return Theme(
+                                                  data: Theme.of(context)
+                                                      .copyWith(
+                                                    dialogBackgroundColor: Theme
+                                                            .of(context)
+                                                        .scaffoldBackgroundColor,
+                                                    appBarTheme:
+                                                        Theme.of(context)
+                                                            .appBarTheme
+                                                            .copyWith(
+                                                              iconTheme:
+                                                                  IconThemeData(
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .primaryColorLight,
+                                                              ),
+                                                            ),
+                                                    colorScheme:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .copyWith(
+                                                              primary: Color(
+                                                                  0xFF06B3C4), // Utilisation de la couleur demandée
+                                                              onPrimary: Theme.of(
+                                                                      context)
+                                                                  .primaryColorLight,
+                                                            ),
+                                                  ),
+                                                  child: child!,
+                                                );
+                                              },
                                               context: context,
                                               firstDate: DateTime.now(),
                                               lastDate: DateTime(3000));
@@ -800,10 +961,7 @@ class _HomeState extends State<Home> {
                                                 bottom: 15),
                                             child: Icon(
                                               Icons.person,
-                                              color:
-                                                  _isGuestEnteredControllerEmpty
-                                                      ? Colors.grey[400]
-                                                      : const Color(0xFF06B3C4),
+                                              color: const Color(0xFF06B3C4),
                                             ),
                                           ),
                                           const SizedBox(width: 10),
@@ -957,6 +1115,10 @@ class _HomeState extends State<Home> {
                           itemCount: hotels.length,
                           itemBuilder: ((context, int i) {
                             return InkWell(
+                              // onTap: (){
+                              //    Navigator.of(context).push(MaterialPageRoute(
+                              //   builder: (context) => DetailsScreen()));
+                              // },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color:
@@ -976,8 +1138,38 @@ class _HomeState extends State<Home> {
                                         ),
                                         child: Center(
                                           child: Image.network(
-                                            '${hotels[i]['photo1']}',
-                                            // fit: BoxFit.contain,
+                                            hotels[i][
+                                                'photo1'], // Utilisez directement l'URL de l'image depuis votre modèle
+                                            loadingBuilder:
+                                                (BuildContext context,
+                                                    Widget child,
+                                                    ImageChunkEvent?
+                                                        loadingProgress) {
+                                              if (loadingProgress == null) {
+                                                return child;
+                                              } else {
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color: Color(0xFF06B3C4),
+                                                    value: loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                        : null,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            errorBuilder: (BuildContext context,
+                                                Object exception,
+                                                StackTrace? stackTrace) {
+                                              return Icon(Icons
+                                                  .error); // Widget à afficher en cas d'erreur de chargement de l'image
+                                            },
                                           ),
                                         ),
                                       ),
@@ -1001,7 +1193,7 @@ class _HomeState extends State<Home> {
                                                   child: Row(
                                                     children: [
                                                       Text(
-                                                        '\$${hotels[i]['price']}/Day',
+                                                        '\$${hotels[i]['chamsp']['price']}/Day',
                                                         style: const TextStyle(
                                                             color:
                                                                 Color.fromARGB(
@@ -1131,7 +1323,7 @@ class _HomeState extends State<Home> {
                     const SizedBox(
                       height: 20,
                     ),
-                    const Row(
+                    Row(
                       children: [
                         Text(
                           'Nearby Hotels',
@@ -1139,83 +1331,143 @@ class _HomeState extends State<Home> {
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         Spacer(),
-                        Text(
-                          'See All ',
-                          style: TextStyle(
-                              color: Color(0xFF06B3C4),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => HotelListScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'See All ',
+                            style: TextStyle(
+                                color: Color(0xFF06B3C4),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
+                          ),
                         )
                       ],
                     ),
                     const SizedBox(
                       height: 15,
                     ),
-                    InkWell(
-                      onTap: () {},
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: ColorFiltered(
-                                  colorFilter: ColorFilter.mode(
-                                    Colors.black.withOpacity(0.2),
-                                    BlendMode.srcATop,
-                                  ),
-                                  child: Image.asset(
-                                    'images/profile.png',
-                                    width: 100,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.all(2.0),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "title",
-                                      style: TextStyle(
-                                          color: Color.fromARGB(255, 0, 0, 0),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16),
-                                    ),
-                                    Text(
-                                      "adresse",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text('\$ price / Night'),
-                                        SizedBox(
-                                          width: 15,
-                                        ),
-                                        Text('⭐rating '),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
+                    Container(
+                      height: 100,
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      child: nearbys.isNotEmpty
+                          ? InkWell(
+                              // onTap: (){
+                              //    Navigator.of(context).push(MaterialPageRoute(
+                              //   builder: (context) => DetailsScreen()));
+                              // },
+                              child: buildHotelCard2(
+                                  0), // Afficher la carte pour le seul élément de la liste
+                            )
+                          : Center(
+                              child: CircularProgressIndicator(
+                              color: Color(0xFF06B3C4),
+                            )), // Afficher un indicateur de chargement si la liste est vide
                     ),
-                    const SizedBox(
-                      height: 20,
-                    )
                   ],
                 ),
               ),
             ));
+  }
+
+  Widget buildHotelCard2(int index) {
+    final nearby = nearbys[index];
+    return InkWell(
+      onTap: () {},
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.2),
+                    BlendMode.srcATop,
+                  ),
+                  child: Image.network(
+                    nearby
+                        .photo3, // Utilisez directement l'URL de l'image depuis votre modèle
+                    width: 100,
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      }
+                    },
+                    errorBuilder: (BuildContext context, Object exception,
+                        StackTrace? stackTrace) {
+                      return Icon(Icons
+                          .error); // Widget à afficher en cas d'erreur de chargement de l'image
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Padding(
+                padding: EdgeInsets.all(2.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${nearby.title}",
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+                    Text(
+                      "${nearby.adresse}",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
+                    Row(
+                      children: [
+                        Text('\$${nearby.price} / Night'),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Text('⭐${nearby.rating} '),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Text(
+                          '${_calculateDistance(currentPosition!.latitude, currentPosition!.longitude, nearby.latitude, nearby.longitude).toStringAsFixed(2)} km',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

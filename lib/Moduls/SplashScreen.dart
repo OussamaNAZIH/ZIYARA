@@ -52,8 +52,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   const Expanded(flex: 1, child: SizedBox()),
                   Center(
                     child: Container(
-                      width: 60,
-                      height: 60,
+                      width: 100,
+                      height: 100,
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         // boxShadow: [
@@ -67,7 +67,11 @@ class _SplashScreenState extends State<SplashScreen> {
                       child: ClipRRect(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(8.0)),
-                        child: Image.asset('images/1.png'),
+                        child: Image.asset(
+                          'images/Z.png',
+                          height: 200,
+                          width: 200,
+                        ),
                       ),
                     ),
                   ),
@@ -114,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           bottom: 24.0 + MediaQuery.of(context).padding.bottom,
                           top: 16),
                       child: const Text(
-                        "Already have account",
+                        "",
                         style: TextStyle(color: Colors.white),
                         textAlign: TextAlign.left,
                       ),

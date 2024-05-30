@@ -9,13 +9,14 @@ class MyBookingScreen extends StatefulWidget {
   int? endday;
   int? endmonth;
   dynamic dataList;
-  MyBookingScreen(
-      {super.key,
-      required this.dataList,
-      required this.startday,
-      required this.startmonth,
-      required this.endday,
-      required this.endmonth});
+  MyBookingScreen({
+    super.key,
+    required this.dataList,
+    required this.startday,
+    required this.startmonth,
+    required this.endday,
+    required this.endmonth,
+  });
 
   @override
   State<MyBookingScreen> createState() => _MyBookingScreenState();
@@ -23,22 +24,23 @@ class MyBookingScreen extends StatefulWidget {
 
 class _MyBookingScreenState extends State<MyBookingScreen> {
   bool isLoading = true;
-  getiduser() {
-    User? user = FirebaseAuth.instance.currentUser;
-    String? userId = user!.uid;
-    return '$userId';
-  }
-
   List Mybooking = [];
 
   CollectionReference Mybookingref =
       FirebaseFirestore.instance.collection("reservation");
+
+  Future<String?> getiduser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+  }
+
   getData() async {
-    var responsebody =
-        await Mybookingref.where('userid', isEqualTo: getiduser()).get();
-    for (var element in responsebody.docs) {
+    String? userId = await getiduser();
+    if (userId != null) {
+      var responsebody =
+          await Mybookingref.where('userid', isEqualTo: userId).get();
       setState(() {
-        Mybooking.add(element.data());
+        Mybooking = responsebody.docs.map((doc) => doc.data()).toList();
         isLoading = false;
       });
     }
@@ -47,7 +49,6 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
   @override
   void initState() {
     super.initState();
-    // Appeler getData() lorsque le widget est créé
     getData();
   }
 
@@ -57,7 +58,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
         ? Center(
             child: CircularProgressIndicator(
             color: Color(0xFF06B3C4),
-          )) // Afficher un indicateur de chargement
+          ))
         : Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
@@ -65,8 +66,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
               title: const Center(
                   child: Text('My booking', style: TextStyle(fontSize: 22))),
               bottom: const PreferredSize(
-                preferredSize: Size.fromHeight(
-                    1.0), // Taille préférée de la barre de délimitation
+                preferredSize: Size.fromHeight(1.0),
                 child: Divider(
                   color: Color.fromARGB(255, 219, 219, 219),
                   height: 1.0,
@@ -93,7 +93,6 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                               MaterialPageRoute(
                                 builder: (context) => ReviewsScreen(
                                   dataList: data,
-                                  // Passer uniquement les données de l'élément sélectionné
                                 ),
                               ),
                             );
@@ -109,6 +108,8 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                 child: Column(
                                   children: [
                                     Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         ClipRRect(
                                           borderRadius:
@@ -118,19 +119,19 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                               Colors.black.withOpacity(0.2),
                                               BlendMode.srcATop,
                                             ),
-                                            // child: Image.asset(
-                                            //   Mybooking[i]['photo'],
-                                            //   fit: BoxFit.cover,
-                                            //   height: 60,
-                                            // ),
+                                            child: Image.network(
+                                              Mybooking[i]['photo'],
+                                              height: 90,
+                                              width: 130,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
                                         Padding(
-                                          padding: EdgeInsets.all(2.0),
+                                          padding: EdgeInsets.all(8.0),
                                           child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 '${data['title']}',
@@ -156,25 +157,19 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                       '⭐${data['rating']} (${data['reviews']})'),
                                                 ],
                                               ),
+                                              Text(
+                                                ('${data['rooms']} room . ') +
+                                                    ('${data['Adults']}  adults .  ${data['Children']} children'),
+                                                style: TextStyle(
+                                                  color: Color(0xFF06B3C4),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
                                       ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Text(
-                                      (' ${data['rooms']} room . ') +
-                                          ('${data['Adults']}  adults .  ${data['Children']} children'),
-                                      style: TextStyle(
-                                        color: Color(0xFF06B3C4),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
                                     ),
                                     Container(
                                       decoration: BoxDecoration(

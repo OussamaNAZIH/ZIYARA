@@ -138,7 +138,7 @@ class _PagepopupState extends State<Pagepopup> {
         backgroundColor: const Color(0xFF06B3C4),
         padding: const EdgeInsets.only(left: 48, right: 48, bottom: 8, top: 8),
         buttonText: "Create account",
-        textColor: Colors.black,
+        textColor: const Color.fromARGB(255, 255, 255, 255),
         onTap: () {
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const Registration()));

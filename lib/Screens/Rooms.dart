@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
-import 'package:flutter_pfe/Screens/details_rooms.dart';
 
 class Book extends StatefulWidget {
   int? startday;
@@ -1682,13 +1681,28 @@ class _BookState extends State<Book> {
                             (chamspValue +
                                 (chamdbValue * 2) +
                                 (suitesValue * 2))) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              duration: Duration(seconds: 6),
+                                 
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              duration: Duration(seconds: 4),
                               backgroundColor: Color.fromARGB(255, 181, 22, 22),
                               content: Text(
                                 'You still need to fit ${(widget.Adults! + widget.Children!) - (chamspValue + (chamdbValue * 2) + (suitesValue * 2))} more Personnes. Check how many guests the available options can sleep.',
                                 style: TextStyle(fontSize: 20),
-                              )));
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15.0),
+                                  topRight: Radius.circular(15.0),
+                                ),
+                              ),
+                              // behavior: SnackBarBehavior
+                              //     ., // Afficher le SnackBar en haut de l'écran
+                              // padding: EdgeInsets.only(
+                              //     top: MediaQuery.of(context).viewInsets.top +
+                              //         20.0), // Ajuster la marge supérieure
+                            ),
+                          );
                         } else {
                           CollectionReference collRef = FirebaseFirestore
                               .instance
@@ -1717,7 +1731,7 @@ class _BookState extends State<Book> {
                           });
                           updateDispo(widget.dataList['hotelid'], chamspValue,
                               chamdbValue, suitesValue);
-                          Navigator.push(
+                          Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => TabScreen()));
