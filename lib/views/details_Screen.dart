@@ -6,6 +6,7 @@ import 'package:flutter_pfe/Screens/StreetView.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
 import 'package:flutter_pfe/Screens/aa.dart';
 import 'package:flutter_pfe/Screens/hotel_reviews.dart';
+import 'package:flutter_pfe/Screens/reviews_screen.dart';
 import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,6 +20,8 @@ class DetailsScreen extends StatefulWidget {
   int? Children;
   int? Adults;
   int? roommin;
+  int? startyear;
+  int? endyear;
   dynamic dataList;
   dynamic hotels;
   DateTime? datefin;
@@ -34,6 +37,8 @@ class DetailsScreen extends StatefulWidget {
       required this.Adults,
       required this.roommin,
       required this.dataList,
+      required this.endyear,
+      required this.startyear,
       required this.startday,
       required this.startmonth,
       required this.endday,
@@ -144,15 +149,16 @@ class _DetailsScreenState extends State<DetailsScreen> {
       isLoading = false;
     });
   }
-Future<void> _launchMapsUrl(double latitude, double longitude) async {
-  final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
-  if (await canLaunch(googleMapsUrl)) {
-    await launch(googleMapsUrl);
-  } else {
-    throw 'Could not launch $googleMapsUrl';
-  }
-}
 
+  Future<void> _launchMapsUrl(double latitude, double longitude) async {
+    final String googleMapsUrl =
+        "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
+    } else {
+      throw 'Could not launch $googleMapsUrl';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -532,61 +538,63 @@ Future<void> _launchMapsUrl(double latitude, double longitude) async {
                           ],
                         ),
                       ),
-                     InkWell(
-  onTap: () async {
-    await _launchMapsUrl(widget.dataList['latitude'], widget.dataList['longitude']);
-    print(widget.dataList['latitude']);
-    print(widget.dataList['longitude']);
-  },
-  child: Center(
-    child: Container(
-      height: 190,
-      width: 290,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: const Color.fromARGB(255, 162, 164, 164),
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Column(
-          children: [
-            Container(
-              height: 135,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 0, 0),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Image.asset(
-                'images/download.jpg',
-              ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: Color(0xFF06B3C4),
-                  ),
-                  Text(
-                    "${widget.dataList['adresse']}",
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 137, 134, 134),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  ),
-),
+                      InkWell(
+                        onTap: () async {
+                          await _launchMapsUrl(widget.dataList['latitude'],
+                              widget.dataList['longitude']);
+                          print(widget.dataList['latitude']);
+                          print(widget.dataList['longitude']);
+                        },
+                        child: Center(
+                          child: Container(
+                            height: 190,
+                            width: 290,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color.fromARGB(255, 162, 164, 164),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: 135,
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(255, 0, 0, 0),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Image.asset(
+                                      'images/download.jpg',
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          color: Color(0xFF06B3C4),
+                                        ),
+                                        Text(
+                                          "${widget.dataList['adresse']}",
+                                          style: const TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 137, 134, 134),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Row(
@@ -600,18 +608,18 @@ Future<void> _launchMapsUrl(double latitude, double longitude) async {
                             Spacer(),
                             GestureDetector(
                               onTap: () {
-                                if (widget.datedebut != null && widget.datefin != null) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (context) => ReservationPage(
-        startDate: widget.datedebut,
-        endDate: widget.datefin,
-      ),
-    ),
-  );
-} else {
-  // Handle the case when dates are null, maybe show an error message
-}
+                                if (widget.datedebut != null &&
+                                    widget.datefin != null) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ReviewsScreen(
+                                       dataList : widget.dataList,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  // Handle the case when dates are null, maybe show an error message
+                                }
                                 print(Hotelreviews);
                               },
                               child: Text(
@@ -703,6 +711,8 @@ Future<void> _launchMapsUrl(double latitude, double longitude) async {
                                     builder: (context) => Book(
                                           startday: widget.startday,
                                           startmonth: widget.startmonth,
+                                          endyear:widget.endyear,
+                                          startyear:widget.startyear,
                                           endday: widget.endday,
                                           endmonth: widget.endmonth,
                                           dataList: widget.dataList,

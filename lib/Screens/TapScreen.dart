@@ -28,6 +28,8 @@ class _TabScreenState extends State<TabScreen> {
       startmonth: null,
       endday: null,
       endmonth: null,
+      endyear: null,
+      startyear: null,
     ),
     const FavoriteScreen(),
     const AccountScreen(), // Assurez-vous que le nom du widget est correct

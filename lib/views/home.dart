@@ -205,6 +205,8 @@ class _SearchScreenState extends State<SearchScreen> {
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => DetailsScreen(
+                                    endyear: widget.endyear,
+                                    startyear : widget.startyear,
                                         rooms: widget.rooms,
                                         Children: widget.Children,
                                         Adults: widget.Adults,

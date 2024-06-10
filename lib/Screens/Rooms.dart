@@ -17,8 +17,13 @@ class Book extends StatefulWidget {
   int? roommin;
   DateTime? datefin;
   DateTime? datedebut;
+  int? startyear;
+  int? endyear;
+
   Book(
       {super.key,
+      required this.endyear,
+      required this.startyear,
       required this.datedebut,
       required this.datefin,
       required this.rooms,
@@ -1768,19 +1773,25 @@ class _BookState extends State<Book> {
                           CollectionReference collRef = FirebaseFirestore
                               .instance
                               .collection('reservation');
+                          DocumentReference docRef = collRef.doc();
+                          String docId = docRef.id;
                           collRef.add({
+                            'id': docId,
                             'userid': getiduser(),
                             'hotelId': widget.dataList['hotelid'],
                             'startday': widget.startday,
                             'startmonth': widget.startmonth,
+                            'startyear': widget.startyear,
                             'endday': widget.endday,
                             'endmonth': widget.endmonth,
+                            'endyear': widget.endyear,
                             'rooms': suitesValue + chamspValue + chamdbValue,
                             'Children': widget.Children,
                             'Adults': widget.Adults,
                             'chamdbValue': chamdbValue,
                             'chamspValue': chamspValue,
                             'suitesValue': suitesValue,
+                            'email': widget.dataList['hotelEmail'],
                             'title': widget.dataList['title'],
                             'adresse': widget.dataList['adresse'],
                             'rating': widget.dataList['rating'],
@@ -1799,6 +1810,8 @@ class _BookState extends State<Book> {
                                         rooms: suitesValue +
                                             chamspValue +
                                             chamdbValue,
+                                        startyear: widget.startyear,
+                                        endyear: widget.endyear,
                                         Children: widget.Children,
                                         Adults: widget.Adults,
                                         suitesValue: suitesValue,
@@ -1809,6 +1822,7 @@ class _BookState extends State<Book> {
                                         endday: widget.endday,
                                         endmonth: widget.endmonth,
                                         dataList: widget.dataList,
+                                        email: widget.dataList['hotelEmail'],
                                         Total: calculateTotal(),
                                         userid: getiduser(),
                                       )));

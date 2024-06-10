@@ -17,9 +17,15 @@ class detailsRooms extends StatefulWidget {
   int? Adults;
   int? Children;
   int? rooms;
+  int? startyear;
+  int? endyear;
+  String? email;
 
   detailsRooms(
       {super.key,
+      required this.endyear,
+      required this.email,
+      required this.startyear,
       required this.Adults,
       required this.Children,
       required this.rooms,
@@ -198,7 +204,7 @@ class _detailsRoomsState extends State<detailsRooms> {
                           ),
                           const Spacer(),
                           Text(
-                            '${widget.startday} / ${widget.startmonth} / 2024  - ${widget.endday} / ${widget.endmonth} 2024',
+                            '${widget.startday} / ${widget.startmonth} / ${widget.startyear}  - ${widget.endday} / ${widget.endmonth} ${widget.endyear}',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -262,7 +268,7 @@ class _detailsRoomsState extends State<detailsRooms> {
                       const SizedBox(
                         height: 15,
                       ),
-                      const Row(
+                       Row(
                         children: [
                           Icon(
                             Icons.email_outlined,
@@ -279,7 +285,7 @@ class _detailsRoomsState extends State<detailsRooms> {
                           ),
                           Spacer(),
                           Text(
-                            'userEmail',
+                           '${widget.email}',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),

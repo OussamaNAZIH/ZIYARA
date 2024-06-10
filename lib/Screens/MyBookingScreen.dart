@@ -8,9 +8,13 @@ class MyBookingScreen extends StatefulWidget {
   int? startmonth;
   int? endday;
   int? endmonth;
+  int? startyear;
+  int? endyear;
   dynamic dataList;
   MyBookingScreen({
     super.key,
+    required this.endyear,
+    required this.startyear,
     required this.dataList,
     required this.startday,
     required this.startmonth,
@@ -81,8 +85,8 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                           const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 1,
                               crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 9 / 4.7),
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 9 / 5.8),
                       itemCount: Mybooking.length,
                       itemBuilder: (context, int i) {
                         var data = Mybooking[i];
@@ -171,6 +175,27 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                         ),
                                       ],
                                     ),
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'ID Reservation : ${data['id']}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          'Email Hotel : ${data['email']}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
                                     Container(
                                       decoration: BoxDecoration(
                                           color: const Color.fromARGB(
@@ -189,7 +214,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                       color: Colors.grey),
                                                 ),
                                                 Text(
-                                                  '${data['datedebut']}',
+                                                  '${data['startday']}/${data['startmonth']}/${data['startyear']}',
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -208,7 +233,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                       color: Colors.grey),
                                                 ),
                                                 Text(
-                                                  '${data['datefin']}',
+                                                  '${data['endday']}/${data['endmonth']}/${data['endyear']}',
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,

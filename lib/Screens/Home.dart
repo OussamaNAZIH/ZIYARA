@@ -29,7 +29,6 @@ class Hotel {
   final String photo1;
   final String photo2;
   final String photo3;
-
   Hotel({
     required this.title,
     required this.latitude,
@@ -58,15 +57,18 @@ class _HomeState extends State<Home> {
   CollectionReference Hotelref =
       FirebaseFirestore.instance.collection("hotels");
 
-  getData() async {
-    var responsebody = await Hotelref.orderBy('rating', descending: true).get();
-    if (mounted) {
-      setState(() {
-        hotels = responsebody.docs.map((doc) => doc.data()).toList();
-        isLoading = false;
-      });
-    }
+ getData() async {
+  var responsebody = await Hotelref.orderBy('rating', descending: true).get();
+  if (mounted) {
+    setState(() {
+      hotels = responsebody.docs.map((doc) => doc.data()).toList();
+      isLoading = false;
+    });
+
+    // Ajoutez cette ligne pour vérifier les données récupérées
+    print("Données récupérées: $hotels");
   }
+}
 
   DateTime? startDate;
   DateTime? endDate;
@@ -332,6 +334,15 @@ class _HomeState extends State<Home> {
     return degree * (pi / 180);
   }
 
+  void _showDateErrorSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Your need to Select date .'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -585,7 +596,7 @@ class _HomeState extends State<Home> {
                                       alignment: Alignment.center,
                                       child: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.center,
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.only(
@@ -620,8 +631,6 @@ class _HomeState extends State<Home> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      controller:
-                                      '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
                                       showModalBottomSheet(
                                         context: context,
                                         builder: (context) {
@@ -989,81 +998,87 @@ class _HomeState extends State<Home> {
                                   InkWell(
                                     onTap: () {
                                       if (_formKey.currentState!.validate()) {
-                                        startday = startDate!.day;
-                                        startmonth = startDate!.month;
-                                        startyear = startDate!.year;
+                                        if (startDate == null ||
+                                            endDate == null) {
+                                          _showDateErrorSnackBar();
+                                        } else {
+                                          startday = startDate!.day;
+                                          startmonth = startDate!.month;
+                                          startyear = startDate!.year;
 
-                                        endday = endDate!.day;
-                                        endmonth = endDate!.month;
-                                        endyear = endDate!.year;
-                                        controller:
-                                        '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
-                                        final selectedProvider =
-                                            Provider.of<SelectedProvider>(
-                                                context,
-                                                listen: false);
+                                          endday = endDate!.day;
+                                          endmonth = endDate!.month;
+                                          endyear = endDate!.year;
+                                          controller:
+                                          '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
+                                          final selectedProvider =
+                                              Provider.of<SelectedProvider>(
+                                                  context,
+                                                  listen: false);
 
-                                        Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => SearchScreen(
-                                                hotels: hotels,
-                                                startday: startday,
-                                                startmonth: startmonth,
-                                                 startyear : startyear,
-                                                endday: endday,
-                                                endmonth: endmonth,
-                                                endyear : endyear,
-                                                rooms: selectedProvider.rooms,
-                                                datedebut: startDate,
-                                                datefin: endDate,
-                                                Children:
-                                                    selectedProvider.children,
-                                                Adults: selectedProvider.adults,
-                                                roommin: (((context.read<SelectedProvider>().adults +
-                                                                context
-                                                                    .read<
-                                                                        SelectedProvider>()
-                                                                    .children) ~/
-                                                            2) +
-                                                        ((context.read<SelectedProvider>().adults +
-                                                                context
-                                                                    .read<
-                                                                        SelectedProvider>()
-                                                                    .children) %
-                                                            2))
-                                                    .toInt(),
-                                                Controller:
-                                                    DestinationController
-                                                        .text)));
+                                          Navigator.of(context).push(MaterialPageRoute(
+                                              builder: (context) => SearchScreen(
+                                                  hotels: hotels,
+                                                  startday: startday,
+                                                  startmonth: startmonth,
+                                                  startyear: startyear,
+                                                  endday: endday,
+                                                  endmonth: endmonth,
+                                                  endyear: endyear,
+                                                  rooms: selectedProvider.rooms,
+                                                  datedebut: startDate,
+                                                  datefin: endDate,
+                                                  Children:
+                                                      selectedProvider.children,
+                                                  Adults:
+                                                      selectedProvider.adults,
+                                                  roommin: (((context.read<SelectedProvider>().adults +
+                                                                  context
+                                                                      .read<
+                                                                          SelectedProvider>()
+                                                                      .children) ~/
+                                                              2) +
+                                                          ((context.read<SelectedProvider>().adults +
+                                                                  context
+                                                                      .read<
+                                                                          SelectedProvider>()
+                                                                      .children) %
+                                                              2))
+                                                      .toInt(),
+                                                  Controller:
+                                                      DestinationController
+                                                          .text)));
 
-                                        print(startDate);
-                                        print(endDate);
-                                        print(
-                                          (((context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .adults +
-                                                          context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .children) ~/
-                                                      2) +
-                                                  ((context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .adults +
-                                                          context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .children) %
-                                                      2))
-                                              .toInt(),
-                                        );
-                                        print(context
-                                            .read<SelectedProvider>()
-                                            .adults);
-                                        print(context
-                                            .read<SelectedProvider>()
-                                            .children);
+                                          print(startDate);
+                                          print(endDate);
+                                          print(
+                                            (((context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) ~/
+                                                        2) +
+                                                    ((context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) %
+                                                        2))
+                                                .toInt(),
+                                          );
+                                          print(context
+                                              .read<SelectedProvider>()
+                                              .adults);
+                                          print(context
+                                              .read<SelectedProvider>()
+                                              .children);
+                                        }
                                       }
                                     },
                                     child: Container(
@@ -1125,65 +1140,75 @@ class _HomeState extends State<Home> {
 
                             return InkWell(
                               onTap: () {
-                                final selectedProvider =
-                                    Provider.of<SelectedProvider>(context,
-                                        listen: false);
+                                if (startDate == null || endDate == null) {
+                                  _showDateErrorSnackBar();
+                                } else {
+                                  final selectedProvider =
+                                      Provider.of<SelectedProvider>(context,
+                                          listen: false);
 
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => SearchScreen(
-                                          hotels: hotels[i],
-                                           endyear : endyear,
-                                            startyear : startyear,
-                                          startday: startDate!.day,
-                                          startmonth: startDate!.month,
-                                          endday: endDate!.day,
-                                          endmonth:endDate!.month,
-                                          rooms: selectedProvider.rooms,
-                                          datedebut: startDate,
-                                          datefin: endDate,
-                                          Children: selectedProvider.children,
-                                          Adults: selectedProvider.adults,
-                                          roommin: (((context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .adults +
-                                                          context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .children) ~/
-                                                      2) +
-                                                  ((context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .adults +
-                                                          context
-                                                              .read<
-                                                                  SelectedProvider>()
-                                                              .children) %
-                                                      2))
-                                              .toInt(),
-                                          Controller: hotels[i]['title'],
-                                        )));
-                                print('$startDate start');
-                                print('$endDate End');
-                                print(
-                                  (((context.read<SelectedProvider>().adults +
-                                                  context
-                                                      .read<SelectedProvider>()
-                                                      .children) ~/
-                                              2) +
-                                          ((context
-                                                      .read<SelectedProvider>()
-                                                      .adults +
-                                                  context
-                                                      .read<SelectedProvider>()
-                                                      .children) %
-                                              2))
-                                      .toInt(),
-                                );
-                                print(context.read<SelectedProvider>().adults);
-                                print(
-                                    context.read<SelectedProvider>().children);
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => SearchScreen(
+                                            hotels: hotels[i],
+                                            endyear: endDate!.year,
+                                            startyear: startDate!.year,
+                                            startday: startDate!.day,
+                                            startmonth: startDate!.month,
+                                            endday: endDate!.day,
+                                            endmonth: endDate!.month,
+                                            rooms: selectedProvider.rooms,
+                                            datedebut: startDate,
+                                            datefin: endDate,
+                                            Children: selectedProvider.children,
+                                            Adults: selectedProvider.adults,
+                                            roommin: (((context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) ~/
+                                                        2) +
+                                                    ((context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .adults +
+                                                            context
+                                                                .read<
+                                                                    SelectedProvider>()
+                                                                .children) %
+                                                        2))
+                                                .toInt(),
+                                            Controller: hotels[i]['title'],
+                                          )));
+                                  print('$startDate start');
+                                  print('$endDate End');
+                                  print(hotels[i]);
+                                  print(
+                                    (((context.read<SelectedProvider>().adults +
+                                                    context
+                                                        .read<
+                                                            SelectedProvider>()
+                                                        .children) ~/
+                                                2) +
+                                            ((context
+                                                        .read<
+                                                            SelectedProvider>()
+                                                        .adults +
+                                                    context
+                                                        .read<
+                                                            SelectedProvider>()
+                                                        .children) %
+                                                2))
+                                        .toInt(),
+                                  );
+                                  print(
+                                      context.read<SelectedProvider>().adults);
+                                  print(context
+                                      .read<SelectedProvider>()
+                                      .children);
+                                }
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -1459,30 +1484,38 @@ class _HomeState extends State<Home> {
     final nearby = nearbys[index];
     return InkWell(
       onTap: () {
-        final selectedProvider =
-            Provider.of<SelectedProvider>(context, listen: false);
+        if (startDate == null || endDate == null) {
+          _showDateErrorSnackBar();
+        } else {
+          final selectedProvider =
+              Provider.of<SelectedProvider>(context, listen: false);
 
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => DetailsScreen(
-                  dataList: nearby,
-                  hotels: nearby,
-                  startday: startday,
-                  startmonth: startmonth,
-                  endday: endday,
-                  endmonth: endmonth,
-                  rooms: selectedProvider.rooms,
-                  datedebut: startDate,
-                  datefin: endDate,
-                  Children: selectedProvider.children,
-                  Adults: selectedProvider.adults,
-                  roommin: (((context.read<SelectedProvider>().adults +
-                                  context.read<SelectedProvider>().children) ~/
-                              2) +
-                          ((context.read<SelectedProvider>().adults +
-                                  context.read<SelectedProvider>().children) %
-                              2))
-                      .toInt(),
-                )));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => DetailsScreen(
+                    startyear: startyear,
+                    endyear: endyear,
+                    dataList: nearby,
+                    hotels: nearby,
+                    startday: startday,
+                    startmonth: startmonth,
+                    endday: endday,
+                    endmonth: endmonth,
+                    rooms: selectedProvider.rooms,
+                    datedebut: startDate,
+                    datefin: endDate,
+                    Children: selectedProvider.children,
+                    Adults: selectedProvider.adults,
+                    roommin: (((context.read<SelectedProvider>().adults +
+                                    context
+                                        .read<SelectedProvider>()
+                                        .children) ~/
+                                2) +
+                            ((context.read<SelectedProvider>().adults +
+                                    context.read<SelectedProvider>().children) %
+                                2))
+                        .toInt(),
+                  )));
+        }
       },
       child: Container(
         decoration: BoxDecoration(
