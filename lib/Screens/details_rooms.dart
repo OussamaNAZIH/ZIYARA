@@ -1,22 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pfe/Screens/MyBookingScreen.dart';
+import 'package:flutter_pfe/Screens/TapScreen.dart';
 
-class detailsRooms extends StatelessWidget {
+class detailsRooms extends StatefulWidget {
   int? startday;
   int? startmonth;
   int? endday;
   int? endmonth;
+  int? chamdbValue;
+  int? suitesValue;
+  int? chamspValue;
   dynamic dataList;
-  dynamic roomData;
+  String? Total;
+  String? userid;
+  int? Adults;
+  int? Children;
+  int? rooms;
 
   detailsRooms(
       {super.key,
+      required this.Adults,
+      required this.Children,
+      required this.rooms,
+      required this.chamdbValue,
+      required this.suitesValue,
+      required this.chamspValue,
       required this.dataList,
-      required this.roomData,
+      required this.Total,
       required this.startday,
       required this.startmonth,
       required this.endday,
+      required this.userid,
       required this.endmonth});
+
+  @override
+  State<detailsRooms> createState() => _detailsRoomsState();
+}
+
+class _detailsRoomsState extends State<detailsRooms> {
+  int Fee = 30;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +47,7 @@ class detailsRooms extends StatelessWidget {
         appBar: AppBar(
           title: const Center(
               child: Text(
-            'Checkout',
+            'Your Ticket',
             style: TextStyle(fontWeight: FontWeight.bold),
           )),
         ),
@@ -55,37 +78,84 @@ class detailsRooms extends StatelessWidget {
                           // ),
                         ),
                       ),
-                      const SizedBox(
-                        width: 10,
-                      ),
                       Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Column(
-                          children: [
-                            Text(
-                              dataList['title'],
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 0, 0, 0),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16),
-                            ),
-                            Text(
-                              dataList['adresse'],
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                            Row(
-                              children: [
-                                Text('\$ ${dataList['price']} / Night'),
-                                const SizedBox(
-                                  width: 15,
+                          padding: const EdgeInsets.all(2.0),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.black.withOpacity(0.2),
+                                    BlendMode.srcATop,
+                                  ),
+                                  child: Image.network(
+                                    widget.dataList['photos'][
+                                        'photo1'], // Utilisez directement l'URL de l'image depuis votre modèle
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (BuildContext context,
+                                        Widget child,
+                                        ImageChunkEvent? loadingProgress) {
+                                      if (loadingProgress == null) {
+                                        return child;
+                                      } else {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            color: Color(0xFF06B3C4),
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    errorBuilder: (BuildContext context,
+                                        Object exception,
+                                        StackTrace? stackTrace) {
+                                      return Icon(Icons
+                                          .error); // Widget à afficher en cas d'erreur de chargement de l'image
+                                    },
+                                  ),
                                 ),
-                                Text(
-                                    '⭐${dataList['rating']} (${dataList['reviews']})'),
-                              ],
-                            )
-                          ],
-                        ),
-                      )
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.dataList['title'],
+                                    style: const TextStyle(
+                                        color: Color.fromARGB(255, 0, 0, 0),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                  Text(
+                                    widget.dataList['adresse'],
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                          '\$ ${widget.dataList['price']} / Night'),
+                                      const SizedBox(
+                                        width: 15,
+                                      ),
+                                      Text(
+                                          '⭐${widget.dataList['rating'].toStringAsFixed(1)} (${widget.dataList['reviews']})'),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ],
+                          ))
                     ],
                   ),
                 ),
@@ -128,7 +198,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '$startday - $endday Nov 2022',
+                            '${widget.startday} / ${widget.startmonth} / 2024  - ${widget.endday} / ${widget.endmonth} 2024',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -138,7 +208,7 @@ class detailsRooms extends StatelessWidget {
                       const SizedBox(
                         height: 15,
                       ),
-                      const Row(
+                      Row(
                         children: [
                           Icon(
                             Icons.person_2_outlined,
@@ -155,7 +225,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           Spacer(),
                           Text(
-                            '2 Guests(1 Room)',
+                            '${widget.Adults != 0 ? ' ${widget.Adults} Guest ' : ''} ${widget.Children != 0 ? '- ${widget.Children} Children ' : ''} (${widget.rooms} Room)',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -182,7 +252,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '${roomData['size']}',
+                            '${widget.chamspValue != 0 ? 'Simple Room' : ''} ${widget.chamdbValue != 0 ? ' - Double Room' : ''}  ${widget.suitesValue != 0 ? ' - Sweet' : ''}',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -209,7 +279,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           Spacer(),
                           Text(
-                            'Hotels@gmail.com',
+                            'userEmail',
                             style: TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -245,7 +315,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '\$ ${dataList['price']}',
+                            '\$ ${widget.Total}',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -265,7 +335,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '\$${dataList['discount']}',
+                            '\$ $Fee',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -285,7 +355,7 @@ class detailsRooms extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '\$${dataList['price'] + dataList['discount']}',
+                            '\$${int.parse(widget.Total!) + Fee}',
                             style: const TextStyle(
                                 color: Color.fromARGB(255, 0, 0, 0),
                                 fontWeight: FontWeight.bold),
@@ -302,16 +372,8 @@ class detailsRooms extends StatelessWidget {
               const Spacer(),
               InkWell(
                 onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MyBookingScreen(
-                                startday: startday,
-                                startmonth: startmonth,
-                                endday: endday,
-                                endmonth: endmonth,
-                                dataList: dataList,
-                              )));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => TabScreen()));
 
                   // Imprimer les données de chaque élément de dataList
                   // for (var snapshot in dataList) {
@@ -326,7 +388,7 @@ class detailsRooms extends StatelessWidget {
                     color: const Color(0xFF06B3C4),
                   ),
                   child: const Center(
-                      child: Text('Select Payment',
+                      child: Text('Go To Home',
                           style: TextStyle(
                               color: Color.fromARGB(255, 255, 255, 255),
                               fontWeight: FontWeight.bold))),

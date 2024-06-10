@@ -192,7 +192,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
         backgroundColor: Colors.white,
         title: const Center(
           child: Text(
-            'Nearby Hotels',
+            'Nearby Hotels 10 Km',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -218,9 +218,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
               padding: const EdgeInsets.all(18.0),
               child: Container(
                 color: const Color.fromARGB(255, 255, 255, 255),
-              
                 child: ListView.separated(
-                  
                   itemCount: nearbys.length,
                   separatorBuilder: (BuildContext context, int index) {
                     return SizedBox(height: 20); // Espace entre chaque élément
@@ -236,98 +234,104 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
   Widget buildHotelCard2(int index) {
     final nearby = nearbys[index];
-    return InkWell(
-      onTap: () {},
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.2),
-                    BlendMode.srcATop,
-                  ),
-                  child: Image.network(
-                    nearby
-                        .photo3, // Utilisez directement l'URL de l'image depuis votre modèle
-                    width: 100,
-                    loadingBuilder: (BuildContext context, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(
+    if (_calculateDistance(currentPosition!.latitude,
+            currentPosition!.longitude, nearby.latitude, nearby.longitude) <
+        10.00) {
+      return InkWell(
+        onTap: () {},
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.2),
+                      BlendMode.srcATop,
+                    ),
+                    child: Image.network(
+                      nearby
+                          .photo3, // Utilisez directement l'URL de l'image depuis votre modèle
+                      width: 100,
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(
                               color: Color(0xFF06B3C4),
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      }
-                    },
-                    errorBuilder: (BuildContext context, Object exception,
-                        StackTrace? stackTrace) {
-                      return Icon(Icons
-                          .error); // Widget à afficher en cas d'erreur de chargement de l'image
-                    },
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        }
+                      },
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
+                        return Icon(Icons
+                            .error); // Widget à afficher en cas d'erreur de chargement de l'image
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Padding(
-                padding: EdgeInsets.all(2.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${nearby.title}",
-                      style: TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                    Text(
-                      "${nearby.adresse}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                    Row(
-                      children: [
-                        Text('\$${nearby.price} / Night'),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text('⭐${nearby.rating} '),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          '${_calculateDistance(currentPosition!.latitude, currentPosition!.longitude, nearby.latitude, nearby.longitude).toStringAsFixed(2)} km',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
+                const SizedBox(
+                  width: 10,
                 ),
-              )
-            ],
+                Padding(
+                  padding: EdgeInsets.all(2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${nearby.title}",
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                      Text(
+                        "${nearby.adresse}",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey),
+                      ),
+                      Row(
+                        children: [
+                          Text('\$${nearby.price} / Night'),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text('⭐${nearby.rating.toStringAsFixed(1)} '),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            '${_calculateDistance(currentPosition!.latitude, currentPosition!.longitude, nearby.latitude, nearby.longitude).toStringAsFixed(2)} km',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Container();
+    }
   }
 }

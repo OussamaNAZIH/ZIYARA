@@ -113,7 +113,7 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                        "⭐${HotelRecomended[i]['rating']} (${HotelRecomended[i]['reviews']})"),
+                        "⭐${HotelRecomended[i]['rating'].toStringAsFixed(1)} (${HotelRecomended[i]['reviews']})"),
                   ),
                 ],
               ),
@@ -141,7 +141,7 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
                 child: Row(
                   children: [
                     Text(
-                      "\$${(HotelRecomended[i]['price'] - (HotelRecomended[i]['price'] * (HotelRecomended[i]['discount']) / 100)).round()}",
+                      "\$${HotelRecomended[i]['chamsp']['price']}",
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
@@ -152,7 +152,7 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
                       width: 5,
                     ),
                     Text(
-                      "\$${HotelRecomended[i]['price']}",
+                      "\$${HotelRecomended[i]['chamsp']['price']}",
                       style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 12,

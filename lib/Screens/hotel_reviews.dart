@@ -74,12 +74,15 @@ class _HotelReviewsState extends State<HotelReviews> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '$_averageRating',
+                          '${_averageRating.toStringAsFixed(1)}',
                           style: TextStyle(
                               fontWeight: FontWeight.w900, fontSize: 30),
                         ),
@@ -111,12 +114,14 @@ class _HotelReviewsState extends State<HotelReviews> {
                         ),
                       ],
                     ),
-                    Text('hello')
                   ],
                 ),
               ),
+              SizedBox(
+                height: 10,
+              ),
               Text(
-                'Reviews (${widget.Hotelreviews.length})',
+                'Total Reviews (${widget.Hotelreviews.length})',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               ListView.builder(
@@ -165,7 +170,7 @@ class _HotelReviewsState extends State<HotelReviews> {
                             ],
                           ),
                         ),
-                        Text('⭐ ${Hotelreview['rating'] ?? ''}'),
+                        Text('⭐ ${Hotelreview['rating'].toStringAsFixed(1) ?? ''}'),
                       ],
                     ),
                   );

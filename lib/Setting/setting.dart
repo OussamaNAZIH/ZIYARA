@@ -149,7 +149,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const Change()));
+                                builder: (context) =>  ChangePasswordPage()));
                         // Action à exécuter lors du clic sur "Change password"
                         // Mettez ici le code pour la fonctionnalité à exécuter
                       },

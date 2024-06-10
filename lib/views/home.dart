@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_pfe/controllers/providers/provider.dart';
 import 'package:flutter_pfe/views/details_Screen.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   int? startday;
@@ -13,9 +15,11 @@ class SearchScreen extends StatefulWidget {
   int? Children;
   int? Adults;
   int? roommin;
+  int? endyear;
+  int? startyear;
   dynamic hotels;
-  String? datedebut;
-  String? datefin;
+  DateTime? datedebut;
+  DateTime? datefin;
 
   final String Controller;
   SearchScreen(
@@ -30,6 +34,7 @@ class SearchScreen extends StatefulWidget {
       required this.Controller,
       required this.startday,
       required this.startmonth,
+       required this.endyear, required this.startyear,
       required this.endday,
       required this.endmonth});
 
@@ -181,6 +186,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     itemCount: _Results.length,
                     itemBuilder: (context, i) {
                       var data = _Results[i];
+                      final isFavorite = context
+                          .watch<SelectedProvider>()
+                          .isFavorite(data['hotelid']);
+
                       return Container(
                           decoration: BoxDecoration(
                               color: Colors.white,
@@ -219,14 +228,65 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Stack(children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      '${data['photos']['photo3']}',
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        '${data['photos']['photo3']}',
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (BuildContext context,
+                                            Widget child,
+                                            ImageChunkEvent? loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          } else {
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                color: Color(0xFF06B3C4),
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                    : null,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        errorBuilder: (BuildContext context,
+                                            Object exception,
+                                            StackTrace? stackTrace) {
+                                          return Icon(Icons.error);
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                ]),
+                                    Positioned(
+                                      top: 10, // Décalage par rapport au haut
+                                      right:
+                                          10, // Décalage par rapport à la gauche
+                                      child: IconButton(
+                                        icon: Icon(
+                                          isFavorite
+                                              ? Icons.favorite
+                                              : Icons.favorite_border_outlined,
+                                          size: 30,
+                                          color: isFavorite
+                                              ? Color.fromARGB(255, 255, 0, 0)
+                                              : Colors
+                                                  .white, // Changement de couleur en fonction de isFavorite
+                                        ),
+                                        onPressed: () {
+                                          context
+                                              .read<SelectedProvider>()
+                                              .toggleFavorite(data['hotelid']);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 // const SizedBox(
                                 //   height: 15,
                                 // ),
@@ -235,7 +295,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
-                                          "⭐${data['rating']} (${data['reviews']})"),
+                                          "⭐${data['rating'].toStringAsFixed(1)} (${data['reviews']})"),
                                     ),
                                   ],
                                 ),
@@ -267,7 +327,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        "\$${(data['price'] - (data['price'] * (data['discount']) / 100)).round()}",
+                                        "\$${data['price']}",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 20,
@@ -278,7 +338,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                         width: 5,
                                       ),
                                       Text(
-                                        "\$${data['price']}",
+                                        "\$${data['price'] + data['discount']}",
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 12,

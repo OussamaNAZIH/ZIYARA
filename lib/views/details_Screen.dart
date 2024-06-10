@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_pfe/Screens/Rooms.dart';
 import 'package:flutter_pfe/Screens/StreetView.dart';
+import 'package:flutter_pfe/Screens/TapScreen.dart';
+import 'package:flutter_pfe/Screens/aa.dart';
 import 'package:flutter_pfe/Screens/hotel_reviews.dart';
+import 'package:flutter_pfe/controllers/providers/provider.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DetailsScreen extends StatefulWidget {
   int? startday;
@@ -17,8 +21,8 @@ class DetailsScreen extends StatefulWidget {
   int? roommin;
   dynamic dataList;
   dynamic hotels;
-  String? datefin;
-  String? datedebut;
+  DateTime? datefin;
+  DateTime? datedebut;
 
   DetailsScreen(
       {super.key,
@@ -42,8 +46,8 @@ class DetailsScreen extends StatefulWidget {
 class _DetailsScreenState extends State<DetailsScreen> {
   int totalChamspValue = 0;
   Future<void> calculerTotalChamspValue() async {
-    final String? datedebut = widget.datedebut;
-    final String? datefin = widget.datefin;
+    final DateTime? datedebut = widget.datedebut;
+    final DateTime? datefin = widget.datefin;
 
     // Récupérer les documents dont la date de début est après ou le même jour que la date de fin saisie
     final QuerySnapshot querySnapshotDebut = await FirebaseFirestore.instance
@@ -140,9 +144,22 @@ class _DetailsScreenState extends State<DetailsScreen> {
       isLoading = false;
     });
   }
+Future<void> _launchMapsUrl(double latitude, double longitude) async {
+  final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
+  if (await canLaunch(googleMapsUrl)) {
+    await launch(googleMapsUrl);
+  } else {
+    throw 'Could not launch $googleMapsUrl';
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
+    final selectedProvider = Provider.of<SelectedProvider>(context);
+    final String hotelId =
+        widget.dataList['hotelid']; // Utilisation de l'ID de l'hôtel
+    final bool isFavorite = selectedProvider.isFavorite(hotelId);
     return isLoading
         ? Center(
             child: CircularProgressIndicator(
@@ -153,11 +170,24 @@ class _DetailsScreenState extends State<DetailsScreen> {
             extendBodyBehindAppBar: true,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
-              actions: const [
+              actions: [
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.favorite_border_outlined,
-                      size: 30, color: Colors.white),
+                  child: IconButton(
+                    icon: Icon(
+                      isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border_outlined,
+                      size: 30,
+                      color: isFavorite
+                          ? Color.fromARGB(255, 255, 0, 0)
+                          : Colors
+                              .white, // Changement de couleur en fonction de isFavorite
+                    ),
+                    onPressed: () {
+                      context.read<SelectedProvider>().toggleFavorite(hotelId);
+                    },
+                  ),
                 ),
               ],
               leading: IconButton(
@@ -168,7 +198,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 ),
                 onPressed: () {
                   Navigator.pop(context);
-                  print(widget.hotels);
                 },
               ),
               title: const Center(
@@ -189,7 +218,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           Column(
                             children: [
                               Container(
-                                height: 260,
+                                height: 230,
                                 color: const Color.fromARGB(255, 255, 255, 255),
                                 child: widget.dataList['photos'] != null &&
                                         widget.dataList['photos'].length >
@@ -226,6 +255,40 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                                     child: Image.network(
                                                       photoUrl,
                                                       fit: BoxFit.cover,
+                                                      loadingBuilder: (BuildContext
+                                                              context,
+                                                          Widget child,
+                                                          ImageChunkEvent?
+                                                              loadingProgress) {
+                                                        if (loadingProgress ==
+                                                            null) {
+                                                          return child;
+                                                        } else {
+                                                          return Center(
+                                                            child:
+                                                                CircularProgressIndicator(
+                                                              color: Color(
+                                                                  0xFF06B3C4),
+                                                              value: loadingProgress
+                                                                          .expectedTotalBytes !=
+                                                                      null
+                                                                  ? loadingProgress
+                                                                          .cumulativeBytesLoaded /
+                                                                      loadingProgress
+                                                                          .expectedTotalBytes!
+                                                                  : null,
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                                      errorBuilder:
+                                                          (BuildContext context,
+                                                              Object exception,
+                                                              StackTrace?
+                                                                  stackTrace) {
+                                                        return Icon(Icons
+                                                            .error); // Widget à afficher en cas d'erreur de chargement de l'image
+                                                      },
                                                       width:
                                                           MediaQuery.of(context)
                                                               .size
@@ -412,7 +475,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                     color: Color(0xFF06B3C4),
                                   ),
                                   onPressed: () {
-                                    // Add your onPressed logic here
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) => TabScreen()));
                                   },
                                 ),
                               ),
@@ -420,35 +485,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           ],
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Common Facilities",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            Spacer(),
-                            Text(
-                              'See All',
-                              style: TextStyle(
-                                color: Color(0xFF06B3C4),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Expanded(
-                      //     child: ListView.builder(
-                      //         itemCount: 3,
-                      //         scrollDirection: Axis.horizontal,
-                      //         itemBuilder: (context, index) {
-                      //           return const MyCircle();
-                      //         })),
                       const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Align(
@@ -459,6 +495,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: Text(widget.dataList['description ']),
                       ),
                       const Padding(
                         padding: EdgeInsets.only(left: 16, right: 16),
@@ -492,63 +532,61 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           ],
                         ),
                       ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  StreetViewScreen(Maps: widget.dataList)));
-                          print(widget.dataList['latitude']);
-                          print(widget.dataList['longitude']);
-                        },
-                        child: Center(
-                          child: Container(
-                            height: 190,
-                            width: 290,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: const Color.fromARGB(
-                                        255, 162, 164, 164),
-                                    width: 1.0),
-                                borderRadius: BorderRadius.circular(15)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: 135,
-                                    decoration: BoxDecoration(
-                                        color:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Image.asset(
-                                      'images/download.jpg',
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on,
-                                          color: Color(0xFF06B3C4),
-                                        ),
-                                        Text(
-                                          "${widget.dataList['adresse']}",
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 137, 134, 134)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                     InkWell(
+  onTap: () async {
+    await _launchMapsUrl(widget.dataList['latitude'], widget.dataList['longitude']);
+    print(widget.dataList['latitude']);
+    print(widget.dataList['longitude']);
+  },
+  child: Center(
+    child: Container(
+      height: 190,
+      width: 290,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: const Color.fromARGB(255, 162, 164, 164),
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Column(
+          children: [
+            Container(
+              height: 135,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 0, 0, 0),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Image.asset(
+                'images/download.jpg',
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    color: Color(0xFF06B3C4),
+                  ),
+                  Text(
+                    "${widget.dataList['adresse']}",
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 137, 134, 134),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+),
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Row(
@@ -562,12 +600,18 @@ class _DetailsScreenState extends State<DetailsScreen> {
                             Spacer(),
                             GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => HotelReviews(
-                                        Hotelreviews: Hotelreviews),
-                                  ),
-                                );
+                                if (widget.datedebut != null && widget.datefin != null) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => ReservationPage(
+        startDate: widget.datedebut,
+        endDate: widget.datefin,
+      ),
+    ),
+  );
+} else {
+  // Handle the case when dates are null, maybe show an error message
+}
                                 print(Hotelreviews);
                               },
                               child: Text(
@@ -582,40 +626,34 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           ],
                         ),
                       ),
-                      Container(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        child: Hotelreviews.isNotEmpty
-                            ? InkWell(
-                                // onTap: (){
-                                //    Navigator.of(context).push(MaterialPageRoute(
-                                //   builder: (context) => DetailsScreen()));
-                                // },
-                                child: buildHotelCard2(
-                                    0), // Afficher la carte pour le seul élément de la liste
-                              )
-                            : Center(
-                                child: const Text(
-                                  'No reviews yet.',
-                                  style: TextStyle(),
-                                ),
-                              ), // Afficher un indicateur de chargement si la liste est vide
-                      ),
-                      Container(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        child: Hotelreviews.isNotEmpty
-                            ? InkWell(
-                                // onTap: (){
-                                //    Navigator.of(context).push(MaterialPageRoute(
-                                //   builder: (context) => DetailsScreen()));
-                                // },
-                                child: buildHotelCard2(
-                                    1), // Afficher la carte pour le seul élément de la liste
-                              )
-                            : const Text(
-                                '',
-                                style: TextStyle(),
-                              ), // Afficher un indicateur de chargement si la liste est vide
-                      ),
+                      if (Hotelreviews.isNotEmpty)
+                        Container(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          child: InkWell(
+                            child: buildHotelCard2(
+                                0), // Afficher la carte pour le seul élément de la liste
+                          ),
+                        )
+                      else
+                        Center(
+                          child: const Text(
+                            'No reviews yet.',
+                            style: TextStyle(),
+                          ),
+                        ),
+                      if (Hotelreviews.length > 1)
+                        Container(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          child: InkWell(
+                            child: buildHotelCard2(
+                                1), // Afficher la carte pour le deuxième élément de la liste, s'il existe
+                          ),
+                        )
+                      else
+                        const Text(
+                          '',
+                          style: TextStyle(),
+                        ),
                       SizedBox(
                         height: 100,
                       )
@@ -647,10 +685,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(left: 16),
                           child: Text(
-                            '\$24.00',
+                            '\MAD ${widget.dataList['price']}',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
                           ),
@@ -749,7 +787,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
               ],
             ),
           ),
-          Text('⭐ ${Hotelreview['rating'] ?? ''}'),
+          Text('⭐ ${Hotelreview['rating'].toStringAsFixed(1) ?? ''}'),
         ],
       ),
     );

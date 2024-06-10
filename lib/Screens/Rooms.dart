@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
+import 'package:flutter_pfe/Screens/details_rooms.dart';
 
 class Book extends StatefulWidget {
   int? startday;
@@ -14,8 +15,8 @@ class Book extends StatefulWidget {
   int? Children;
   int? Adults;
   int? roommin;
-  String? datefin;
-  String? datedebut;
+  DateTime? datefin;
+  DateTime? datedebut;
   Book(
       {super.key,
       required this.datedebut,
@@ -38,10 +39,18 @@ class _BookState extends State<Book> {
   late int chamspValue;
   late int chamdbValue;
   late int suitesValue = 0;
+
   @override
   void initState() {
     super.initState();
-
+    if (widget.datedebut != null && widget.datefin != null) {
+      fetchReservations(widget.datedebut!, widget.datefin!);
+    } else {
+      // Handle the case where startDate or endDate is null
+      setState(() {
+        isLoading = false;
+      });
+    }
     // Calculer les valeurs initiales de chamspValue et chamdbValue
     chamspValue = ((widget.Adults! + widget.Children!) % 2).toInt();
     chamdbValue = ((widget.Adults! + widget.Children!) ~/ 2).toInt();
@@ -54,6 +63,14 @@ class _BookState extends State<Book> {
       chamspValue += additionalChamsp;
       // Réduire chamdbValue à la disponibilité des chamdb
       chamdbValue = widget.dataList['chamdb']['dispo'];
+    }
+    if (chamspValue >= widget.dataList['chamsp']['dispo']) {
+      // Calculer la quantité supplémentaire de chambres simples nécessaires
+      int additionalChamdb =
+          ((chamspValue - widget.dataList['chamsp']['dispo']) * 1).toInt();
+      chamdbValue += additionalChamdb;
+      // Réduire chamdbValue à la disponibilité des chamdb
+      chamspValue = widget.dataList['chamsp']['dispo'];
     }
     if (chamspValue >= widget.dataList['chamsp']['dispo']) {
       int additionalSuites =
@@ -142,6 +159,59 @@ class _BookState extends State<Book> {
       });
     } else {
       print('Hotel not found!');
+    }
+  }
+
+  List<QueryDocumentSnapshot> reservations = [];
+  bool isLoading = true;
+  num totalChamdbValue = 0;
+  num totalChamspValue = 0;
+  num totalSuitesValue = 0;
+
+  void fetchReservations(DateTime startDate, DateTime endDate) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // First query: get reservations with datedebut within the interval
+    QuerySnapshot query1 = await firestore
+        .collection('reservation')
+        .where('datedebut',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('datedebut', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .get();
+
+    // Second query: get reservations with datefin within the interval
+    QuerySnapshot query2 = await firestore
+        .collection('reservation')
+        .where('datefin', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('datefin', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .get();
+
+    // Combine results and remove duplicates
+    Map<String, QueryDocumentSnapshot> reservationMap = {};
+    for (var doc in query1.docs) {
+      reservationMap[doc.id] = doc;
+    }
+    for (var doc in query2.docs) {
+      reservationMap[doc.id] = doc;
+    }
+
+    setState(() {
+      reservations = reservationMap.values.toList();
+      calculateTotals();
+      isLoading = false;
+    });
+  }
+
+  void calculateTotals() {
+    totalChamdbValue = 0;
+    totalChamspValue = 0;
+    totalSuitesValue = 0;
+
+    for (var reservation in reservations) {
+      var data = reservation.data() as Map<String, dynamic>;
+      totalChamdbValue += data['chamdbValue'] ?? 0;
+      totalChamspValue += data['chamspValue'] ?? 0;
+      totalSuitesValue += data['suitesValue'] ?? 0;
     }
   }
 
@@ -570,10 +640,12 @@ class _BookState extends State<Book> {
                                         items: List.generate(
                                           (chamspValue >
                                                   widget.dataList['chamsp']
-                                                      ['dispo'])
-                                              ? 1
-                                              : widget.dataList['chamsp']
-                                                      ['dispo'] +
+                                                          ['dispo'] -
+                                                      totalChamspValue)
+                                              ? 0
+                                              : (widget.dataList['chamsp']
+                                                          ['dispo'] -
+                                                      totalChamspValue) +
                                                   1,
                                           (index) => DropdownMenuItem<int>(
                                             value: index,
@@ -581,23 +653,7 @@ class _BookState extends State<Book> {
                                           ),
                                         ),
                                         // Valeur initiale
-                                        value:
-                                            //  (chamspValue >
-                                            //         widget.dataList['chamsp']
-                                            //             ['dispo'])
-                                            //     ? 0
-                                            //     : chamdbValue >
-                                            //             widget.dataList['chamdb']
-                                            //                 ['dispo']
-                                            //         ? (chamspValue +
-                                            //                 (chamdbValue -
-                                            //                         widget.dataList[
-                                            //                                 'chamdb']
-                                            //                             ['dispo']) *
-                                            //                     2)
-                                            //             .toInt()
-                                            //         :
-                                            chamspValue,
+                                        value: chamspValue,
                                         onChanged: (value) {
                                           // Mettre à jour la valeur sélectionnée
                                           setState(() {
@@ -1043,11 +1099,13 @@ class _BookState extends State<Book> {
                                       DropdownButton<int>(
                                         items: List.generate(
                                           (chamdbValue >
-                                                  widget.dataList['chamdb']
-                                                      ['dispo'])
-                                              ? 1
-                                              : widget.dataList['chamdb']
-                                                      ['dispo'] +
+                                                  (widget.dataList['chamdb']
+                                                          ['dispo'] -
+                                                      totalChamdbValue))
+                                              ? 0
+                                              : (widget.dataList['chamdb']
+                                                          ['dispo'] -
+                                                      totalChamdbValue) +
                                                   1,
                                           (index) => DropdownMenuItem<int>(
                                             value: index,
@@ -1055,10 +1113,11 @@ class _BookState extends State<Book> {
                                           ),
                                         ),
                                         // Valeur initiale
-                                        value: (chamdbValue >=
+                                        value: (chamdbValue >
                                                 widget.dataList['chamdb']
-                                                    ['dispo'])
-                                            ? widget.dataList['chamdb']['dispo']
+                                                        ['dispo'] -
+                                                    totalChamdbValue)
+                                            ? 0
                                             : chamdbValue,
                                         onChanged: (value) {
                                           // Mettre à jour la valeur sélectionnée
@@ -1506,11 +1565,13 @@ class _BookState extends State<Book> {
                                       DropdownButton<int>(
                                         items: List.generate(
                                           (suitesValue >
-                                                  widget.dataList['suites']
-                                                      ['dispo'])
-                                              ? 1
-                                              : widget.dataList['suites']
-                                                      ['dispo'] +
+                                                  (widget.dataList['suites']
+                                                          ['dispo'] -
+                                                      totalSuitesValue))
+                                              ? 0
+                                              : (widget.dataList['suites']
+                                                          ['dispo'] -
+                                                      totalSuitesValue) +
                                                   1,
                                           (index) => DropdownMenuItem<int>(
                                             value: index,
@@ -1519,8 +1580,9 @@ class _BookState extends State<Book> {
                                         ),
                                         // Valeur initiale
                                         value: (suitesValue >
-                                                widget.dataList['suites']
-                                                    ['dispo'])
+                                                (widget.dataList['suites']
+                                                        ['dispo'] -
+                                                    totalSuitesValue))
                                             ? 0
                                             : suitesValue,
                                         onChanged: (value) {
@@ -1681,7 +1743,6 @@ class _BookState extends State<Book> {
                             (chamspValue +
                                 (chamdbValue * 2) +
                                 (suitesValue * 2))) {
-                                 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               duration: Duration(seconds: 4),
@@ -1729,13 +1790,30 @@ class _BookState extends State<Book> {
                             'datedebut': widget.datedebut,
                             'datefin': widget.datefin,
                           });
-                          updateDispo(widget.dataList['hotelid'], chamspValue,
-                              chamdbValue, suitesValue);
+                          // updateDispo(widget.dataList['hotelid'], chamspValue,
+                          //     chamdbValue, suitesValue);
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => TabScreen()));
+                                  builder: (context) => detailsRooms(
+                                        rooms: suitesValue +
+                                            chamspValue +
+                                            chamdbValue,
+                                        Children: widget.Children,
+                                        Adults: widget.Adults,
+                                        suitesValue: suitesValue,
+                                        chamspValue: chamspValue,
+                                        chamdbValue: chamdbValue,
+                                        startday: widget.startday,
+                                        startmonth: widget.startmonth,
+                                        endday: widget.endday,
+                                        endmonth: widget.endmonth,
+                                        dataList: widget.dataList,
+                                        Total: calculateTotal(),
+                                        userid: getiduser(),
+                                      )));
                         }
+                        print(getiduser());
                       },
                       child: Container(
                         width: double

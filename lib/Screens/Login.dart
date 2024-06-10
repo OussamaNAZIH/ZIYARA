@@ -1,13 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_pfe/Moduls/SplashScreen.dart';
 import 'package:flutter_pfe/Screens/Home.dart';
 import 'package:flutter_pfe/Screens/MapsScreen.dart';
 import 'package:flutter_pfe/Screens/Registration.dart';
 import 'package:flutter_pfe/Screens/TapScreen.dart';
 import 'package:flutter_pfe/Screens/VerificationCode.dart';
-import 'package:flutter_pfe/Screens/auth.dart';
+import 'package:flutter_pfe/Screens/ReservationScreen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class Login extends StatefulWidget {
@@ -142,7 +144,69 @@ class _LoginState extends State<Login> {
       );
     }
   }
+// Future<void> signInWithFacebook() async {
+//   try {
+//     final LoginResult result = await FacebookAuth.instance.login();
+//     if (result.status == LoginStatus.success) {
+//       final AccessToken accessToken = result.accessToken!;
+//       final AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
+//       await FirebaseAuth.instance.signInWithCredential(credential);
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(builder: (context) => const TabScreen()),
+//       );
+//     } else {
+//       print('Facebook login failed: ${result.message}');
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           backgroundColor: Colors.red,
+//           content: Text(
+//             'Facebook sign-in failed',
+//             style: TextStyle(fontSize: 20),
+//           ),
+//         ),
+//       );
+//     }
+//   } catch (e) {
+//     print('Error during Facebook sign-in: $e');
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         backgroundColor: Colors.red,
+//         content: Text(
+//           'Facebook sign-in failed',
+//           style: TextStyle(fontSize: 20),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
+
+    Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const TabScreen()),
+      );
+    } catch (e) {
+      print('Error during Google sign-in: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(
+            'Google sign-in failed',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      );
+    }}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -436,25 +500,30 @@ class _LoginState extends State<Login> {
                     const SizedBox(
                       height: 50,
                     ),
-                    InkWell(
-                      child: Row(
+                    Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              'images/1199414.png',
-                              height: 50,
-                              width: 50,
+                            InkWell(
+                              onTap:signInWithGoogle ,
+                              child: Image.asset(
+                                'images/1199414.png',
+                                height: 50,
+                                width: 50,
+                              ),
                             ),
                             // const SizedBox(
                             //   width: 20,
                             // ),
-                            Image.asset(
-                              'images/Facebook.png',
-                              height: 95,
-                              width: 95,
+                            InkWell(
+                            //  onTap: signInWithFacebook,
+                              child: Image.asset(
+                                'images/Facebook.png',
+                                height: 95,
+                                width: 95,
+                              ),
                             ),
                           ]),
-                    ),
+                    
                     const SizedBox(
                       height: 40,
                     ),
@@ -468,7 +537,7 @@ class _LoginState extends State<Login> {
                           ),
                           InkWell(
                             onTap: () {
-                              Navigator.push(
+                             Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>

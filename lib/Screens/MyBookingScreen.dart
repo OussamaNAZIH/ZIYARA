@@ -154,12 +154,12 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                     width: 15,
                                                   ),
                                                   Text(
-                                                      '⭐${data['rating']} (${data['reviews']})'),
+                                                      '⭐${data['rating'].toStringAsFixed(1)} (${data['reviews']})'),
                                                 ],
                                               ),
                                               Text(
-                                                ('${data['rooms']} room . ') +
-                                                    ('${data['Adults']}  adults .  ${data['Children']} children'),
+                                                ('${data['rooms']}room . ') +
+                                                    ('${data['Adults']} adults .  ${data['Children']}children'),
                                                 style: TextStyle(
                                                   color: Color(0xFF06B3C4),
                                                   fontWeight: FontWeight.bold,
@@ -189,7 +189,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                       color: Colors.grey),
                                                 ),
                                                 Text(
-                                                  '${data['startday']} / ${data['startmonth']}',
+                                                  '${data['datedebut']}',
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -208,7 +208,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                       color: Colors.grey),
                                                 ),
                                                 Text(
-                                                  '${data['endday']} / ${data['endmonth']}',
+                                                  '${data['datefin']}',
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,

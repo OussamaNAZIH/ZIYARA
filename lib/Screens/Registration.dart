@@ -31,6 +31,7 @@ class _RegistrationState extends State<Registration> {
           // Ajoutez d'autres champs d'utilisateur si nécessaire
           "username": _userController.text.trim(),
           "usergmail": _mailController.text.trim(),
+          "userprofile" : "",
         });
 
         print("Utilisateur ajouté avec l'ID utilisateur: $userId");
@@ -446,7 +447,7 @@ class _RegistrationState extends State<Registration> {
                         ),
                         InkWell(
                           onTap: () {
-                            Navigator.push(
+                           Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => const Login()));

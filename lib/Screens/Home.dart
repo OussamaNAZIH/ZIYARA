@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter_pfe/Screens/ReservationScreen.dart';
+import 'package:flutter_pfe/views/details_Screen.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -53,7 +55,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isLoading = true;
   List hotels = [];
-  CollectionReference Hotelref = FirebaseFirestore.instance.collection("hotels");
+  CollectionReference Hotelref =
+      FirebaseFirestore.instance.collection("hotels");
 
   getData() async {
     var responsebody = await Hotelref.orderBy('rating', descending: true).get();
@@ -65,7 +68,10 @@ class _HomeState extends State<Home> {
     }
   }
 
+  DateTime? startDate;
+  DateTime? endDate;
   String? _userName = '';
+  String? _profile = '';
   void _getCurrentUser() async {
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -78,6 +84,7 @@ class _HomeState extends State<Home> {
       if (mounted) {
         setState(() {
           _userName = userData['username'];
+          _profile = userData['userprofile'];
           isLoading = false;
         });
       }
@@ -91,6 +98,8 @@ class _HomeState extends State<Home> {
   int? startmonth;
   int? endday;
   int? endmonth;
+  int? startyear;
+  int? endyear;
   String? date;
 
   final List<String> _hotelTitles = [];
@@ -148,7 +157,8 @@ class _HomeState extends State<Home> {
     isGuestEnteredController.addListener(() {
       if (mounted) {
         setState(() {
-          _isGuestEnteredControllerEmpty = isGuestEnteredController.text.isEmpty;
+          _isGuestEnteredControllerEmpty =
+              isGuestEnteredController.text.isEmpty;
         });
       }
     });
@@ -261,7 +271,8 @@ class _HomeState extends State<Home> {
       if (placemarks.isNotEmpty) {
         if (mounted) {
           setState(() {
-            userAddress = '${placemarks.first.name},${placemarks.first.country}';
+            userAddress =
+                '${placemarks.first.name},${placemarks.first.country}';
           });
         }
       }
@@ -285,7 +296,7 @@ class _HomeState extends State<Home> {
             rating: (doc['rating'] as num).toDouble(),
             reviews: doc['reviews'] as int,
             adresse: doc['adresse'],
-            price: doc['chamsp']['price'] as int,
+            price: doc['price'] as int,
             discount: doc['discount'] as int,
             photo1: doc['photos']['photo1'],
             photo2: doc['photos']['photo2'],
@@ -346,8 +357,10 @@ class _HomeState extends State<Home> {
                             shape: BoxShape.circle,
                           ),
                           child: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                'https://ui-avatars.com/api/?name=${_userName}&font-size=0.36&color=233467&background=random'),
+                            backgroundImage: _profile != ""
+                                ? NetworkImage(_profile!)
+                                : NetworkImage(
+                                    'https://ui-avatars.com/api/?name=${_userName}&font-size=0.36&color=233467&background=random'),
                           ),
                         ),
                         const Spacer(),
@@ -505,48 +518,40 @@ class _HomeState extends State<Home> {
                                     onTap: () async {
                                       final DateTimeRange? dateTimeRange =
                                           await showDateRangePicker(
-                                              barrierColor: Color(0xFF06B3C4),
-                                              builder:
-                                                  (context, Widget? child) {
-                                                return Theme(
-                                                  data: Theme.of(context)
-                                                      .copyWith(
-                                                    dialogBackgroundColor: Theme
-                                                            .of(context)
-                                                        .scaffoldBackgroundColor,
-                                                    appBarTheme:
-                                                        Theme.of(context)
-                                                            .appBarTheme
-                                                            .copyWith(
-                                                              iconTheme:
-                                                                  IconThemeData(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .primaryColorLight,
-                                                              ),
-                                                            ),
-                                                    colorScheme:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .copyWith(
-                                                              primary: Color(
-                                                                  0xFF06B3C4), // Utilisation de la couleur demandée
-                                                              onPrimary: Theme.of(
-                                                                      context)
-                                                                  .primaryColorLight,
-                                                            ),
+                                        barrierColor: Color(0xFF06B3C4),
+                                        builder: (context, Widget? child) {
+                                          return Theme(
+                                            data: Theme.of(context).copyWith(
+                                              dialogBackgroundColor:
+                                                  Theme.of(context)
+                                                      .scaffoldBackgroundColor,
+                                              appBarTheme: Theme.of(context)
+                                                  .appBarTheme
+                                                  .copyWith(
+                                                    iconTheme: IconThemeData(
+                                                      color: Theme.of(context)
+                                                          .primaryColorLight,
+                                                    ),
                                                   ),
-                                                  child: child!,
-                                                );
-                                              },
-                                              context: context,
-                                              firstDate: DateTime.now(),
-                                              lastDate: DateTime(3000));
+                                              colorScheme: Theme.of(context)
+                                                  .colorScheme
+                                                  .copyWith(
+                                                    primary: Color(0xFF06B3C4),
+                                                    onPrimary: Theme.of(context)
+                                                        .primaryColorLight,
+                                                  ),
+                                            ),
+                                            child: child!,
+                                          );
+                                        },
+                                        context: context,
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(3000),
+                                      );
 
                                       if (dateTimeRange != null) {
                                         if (dateTimeRange.start ==
                                             dateTimeRange.end) {
-                                          // Si la date de début est égale à la date de fin, afficher un message d'erreur
                                           showDialog(
                                             context: context,
                                             builder: (context) {
@@ -557,8 +562,7 @@ class _HomeState extends State<Home> {
                                                 actions: [
                                                   TextButton(
                                                     onPressed: () {
-                                                      Navigator.pop(
-                                                          context); // Fermer la boîte de dialogue
+                                                      Navigator.pop(context);
                                                     },
                                                     child: const Text("OK"),
                                                   ),
@@ -568,7 +572,8 @@ class _HomeState extends State<Home> {
                                           );
                                         } else {
                                           setState(() {
-                                            selectedDates = dateTimeRange;
+                                            startDate = dateTimeRange.start;
+                                            endDate = dateTimeRange.end;
                                             isDateSelected = true;
                                           });
                                         }
@@ -597,7 +602,10 @@ class _HomeState extends State<Home> {
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
-                                              '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}',
+                                              startDate != null &&
+                                                      endDate != null
+                                                  ? '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}'
+                                                  : 'Sélectionner une date',
                                               style: TextStyle(
                                                 color: dateTextFieldEmpty
                                                     ? Colors.grey[500]
@@ -613,7 +621,7 @@ class _HomeState extends State<Home> {
                                   GestureDetector(
                                     onTap: () {
                                       controller:
-                                      '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}';
+                                      '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
                                       showModalBottomSheet(
                                         context: context,
                                         builder: (context) {
@@ -981,13 +989,15 @@ class _HomeState extends State<Home> {
                                   InkWell(
                                     onTap: () {
                                       if (_formKey.currentState!.validate()) {
-                                        startday = selectedDates.start.day;
-                                        startmonth = selectedDates.start.month;
-                                        endday = selectedDates.end.day;
-                                        endmonth = selectedDates.end.month;
+                                        startday = startDate!.day;
+                                        startmonth = startDate!.month;
+                                        startyear = startDate!.year;
 
+                                        endday = endDate!.day;
+                                        endmonth = endDate!.month;
+                                        endyear = endDate!.year;
                                         controller:
-                                        '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year} - ${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}';
+                                        '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}';
                                         final selectedProvider =
                                             Provider.of<SelectedProvider>(
                                                 context,
@@ -998,13 +1008,13 @@ class _HomeState extends State<Home> {
                                                 hotels: hotels,
                                                 startday: startday,
                                                 startmonth: startmonth,
+                                                 startyear : startyear,
                                                 endday: endday,
                                                 endmonth: endmonth,
+                                                endyear : endyear,
                                                 rooms: selectedProvider.rooms,
-                                                datedebut:
-                                                    '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year}',
-                                                datefin:
-                                                    '${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}',
+                                                datedebut: startDate,
+                                                datefin: endDate,
                                                 Children:
                                                     selectedProvider.children,
                                                 Adults: selectedProvider.adults,
@@ -1024,14 +1034,9 @@ class _HomeState extends State<Home> {
                                                 Controller:
                                                     DestinationController
                                                         .text)));
-                                        print(startday);
-                                        print(startmonth);
-                                        print(endday);
-                                        print(endmonth);
-                                        print(
-                                            '${selectedDates.start.day}/${selectedDates.start.month}/${selectedDates.start.year}');
-                                        print(
-                                            '${selectedDates.end.day}/${selectedDates.end.month}/${selectedDates.end.year}');
+
+                                        print(startDate);
+                                        print(endDate);
                                         print(
                                           (((context
                                                               .read<
@@ -1114,11 +1119,72 @@ class _HomeState extends State<Home> {
                           scrollDirection: Axis.horizontal,
                           itemCount: hotels.length,
                           itemBuilder: ((context, int i) {
+                            final isFavorite = context
+                                .watch<SelectedProvider>()
+                                .isFavorite(hotels[i]['hotelid']);
+
                             return InkWell(
-                              // onTap: (){
-                              //    Navigator.of(context).push(MaterialPageRoute(
-                              //   builder: (context) => DetailsScreen()));
-                              // },
+                              onTap: () {
+                                final selectedProvider =
+                                    Provider.of<SelectedProvider>(context,
+                                        listen: false);
+
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => SearchScreen(
+                                          hotels: hotels[i],
+                                           endyear : endyear,
+                                            startyear : startyear,
+                                          startday: startDate!.day,
+                                          startmonth: startDate!.month,
+                                          endday: endDate!.day,
+                                          endmonth:endDate!.month,
+                                          rooms: selectedProvider.rooms,
+                                          datedebut: startDate,
+                                          datefin: endDate,
+                                          Children: selectedProvider.children,
+                                          Adults: selectedProvider.adults,
+                                          roommin: (((context
+                                                              .read<
+                                                                  SelectedProvider>()
+                                                              .adults +
+                                                          context
+                                                              .read<
+                                                                  SelectedProvider>()
+                                                              .children) ~/
+                                                      2) +
+                                                  ((context
+                                                              .read<
+                                                                  SelectedProvider>()
+                                                              .adults +
+                                                          context
+                                                              .read<
+                                                                  SelectedProvider>()
+                                                              .children) %
+                                                      2))
+                                              .toInt(),
+                                          Controller: hotels[i]['title'],
+                                        )));
+                                print('$startDate start');
+                                print('$endDate End');
+                                print(
+                                  (((context.read<SelectedProvider>().adults +
+                                                  context
+                                                      .read<SelectedProvider>()
+                                                      .children) ~/
+                                              2) +
+                                          ((context
+                                                      .read<SelectedProvider>()
+                                                      .adults +
+                                                  context
+                                                      .read<SelectedProvider>()
+                                                      .children) %
+                                              2))
+                                      .toInt(),
+                                );
+                                print(context.read<SelectedProvider>().adults);
+                                print(
+                                    context.read<SelectedProvider>().children);
+                              },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color:
@@ -1138,8 +1204,12 @@ class _HomeState extends State<Home> {
                                         ),
                                         child: Center(
                                           child: Image.network(
-                                            hotels[i][
-                                                'photo1'], // Utilisez directement l'URL de l'image depuis votre modèle
+                                            hotels[i]['photo1'],
+                                            width: 280,
+                                            height: 500,
+
+                                            fit: BoxFit.cover,
+                                            // Utilisez directement l'URL de l'image depuis votre modèle
                                             loadingBuilder:
                                                 (BuildContext context,
                                                     Widget child,
@@ -1193,7 +1263,7 @@ class _HomeState extends State<Home> {
                                                   child: Row(
                                                     children: [
                                                       Text(
-                                                        '\$${hotels[i]['chamsp']['price']}/Day',
+                                                        'MAD ${hotels[i]['price']}/Day',
                                                         style: const TextStyle(
                                                             color:
                                                                 Color.fromARGB(
@@ -1208,14 +1278,24 @@ class _HomeState extends State<Home> {
                                               ),
                                               const Spacer(),
                                               IconButton(
-                                                icon: const Icon(
-                                                  Icons
-                                                      .favorite_border_outlined,
+                                                icon: Icon(
+                                                  isFavorite
+                                                      ? Icons.favorite
+                                                      : Icons
+                                                          .favorite_border_outlined,
                                                   size: 30,
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255),
+                                                  color: isFavorite
+                                                      ? Color.fromARGB(
+                                                          255, 255, 0, 0)
+                                                      : Colors
+                                                          .white, // Changement de couleur en fonction de isFavorite
                                                 ),
-                                                onPressed: () {},
+                                                onPressed: () {
+                                                  context
+                                                      .read<SelectedProvider>()
+                                                      .toggleFavorite(
+                                                          hotels[i]['hotelid']);
+                                                },
                                               ),
                                             ],
                                           ),
@@ -1240,7 +1320,7 @@ class _HomeState extends State<Home> {
                                                   Row(
                                                     children: [
                                                       Text(
-                                                        '⭐${hotels[i]['rating']} ',
+                                                        '⭐${hotels[i]['rating'].toStringAsFixed(1)} ',
                                                         style: const TextStyle(
                                                             color:
                                                                 Color.fromARGB(
@@ -1378,7 +1458,32 @@ class _HomeState extends State<Home> {
   Widget buildHotelCard2(int index) {
     final nearby = nearbys[index];
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        final selectedProvider =
+            Provider.of<SelectedProvider>(context, listen: false);
+
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => DetailsScreen(
+                  dataList: nearby,
+                  hotels: nearby,
+                  startday: startday,
+                  startmonth: startmonth,
+                  endday: endday,
+                  endmonth: endmonth,
+                  rooms: selectedProvider.rooms,
+                  datedebut: startDate,
+                  datefin: endDate,
+                  Children: selectedProvider.children,
+                  Adults: selectedProvider.adults,
+                  roommin: (((context.read<SelectedProvider>().adults +
+                                  context.read<SelectedProvider>().children) ~/
+                              2) +
+                          ((context.read<SelectedProvider>().adults +
+                                  context.read<SelectedProvider>().children) %
+                              2))
+                      .toInt(),
+                )));
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[100],
@@ -1406,6 +1511,7 @@ class _HomeState extends State<Home> {
                       } else {
                         return Center(
                           child: CircularProgressIndicator(
+                            color: Color(0xFF06B3C4),
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
                                     loadingProgress.expectedTotalBytes!
@@ -1448,7 +1554,7 @@ class _HomeState extends State<Home> {
                         SizedBox(
                           width: 15,
                         ),
-                        Text('⭐${nearby.rating} '),
+                        Text('⭐${nearby.rating.toStringAsFixed(1)} '),
                         SizedBox(
                           width: 15,
                         ),
