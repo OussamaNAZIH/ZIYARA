@@ -34,7 +34,8 @@ class SearchScreen extends StatefulWidget {
       required this.Controller,
       required this.startday,
       required this.startmonth,
-       required this.endyear, required this.startyear,
+      required this.endyear,
+      required this.startyear,
       required this.endday,
       required this.endmonth});
 
@@ -47,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List _allResults = [];
   List _Results = [];
   int minPrice = 0;
-  int maxPrice = 1000;
+  int maxPrice = 7000;
   double minRating = 0;
   double maxRating = 5;
   bool isLoading = true;
@@ -205,8 +206,8 @@ class _SearchScreenState extends State<SearchScreen> {
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => DetailsScreen(
-                                    endyear: widget.endyear,
-                                    startyear : widget.startyear,
+                                        endyear: widget.endyear,
+                                        startyear: widget.startyear,
                                         rooms: widget.rooms,
                                         Children: widget.Children,
                                         Adults: widget.Adults,
@@ -329,7 +330,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        "\$${data['price']}",
+                                        "\MAD ${data['price']}",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 20,
@@ -340,7 +341,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                         width: 5,
                                       ),
                                       Text(
-                                        "\$${data['price'] + data['discount']}",
+                                        "\MAD ${data['price'] + data['discount']}",
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 12,
@@ -385,7 +386,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             fontSize: 18.0, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '\$$minPrice - \$$maxPrice',
+                        '\MAD $minPrice - \$$maxPrice',
                         style: const TextStyle(fontSize: 16.0),
                       ),
                     ],

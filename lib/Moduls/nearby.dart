@@ -305,7 +305,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
                       ),
                       Row(
                         children: [
-                          Text('\$${nearby.price} / Night'),
+                          Text('\MAD ${nearby.price} / Night'),
                           SizedBox(
                             width: 10,
                           ),

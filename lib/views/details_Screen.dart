@@ -612,8 +612,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                     widget.datefin != null) {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ReviewsScreen(
-                                       dataList : widget.dataList,
+                                      builder: (context) => HotelReviews(
+                                        Hotelreviews: Hotelreviews,
                                       ),
                                     ),
                                   );
@@ -711,8 +711,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                     builder: (context) => Book(
                                           startday: widget.startday,
                                           startmonth: widget.startmonth,
-                                          endyear:widget.endyear,
-                                          startyear:widget.startyear,
+                                          endyear: widget.endyear,
+                                          startyear: widget.startyear,
                                           endday: widget.endday,
                                           endmonth: widget.endmonth,
                                           dataList: widget.dataList,

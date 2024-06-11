@@ -153,7 +153,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                               Row(
                                                 children: [
                                                   Text(
-                                                      '\$ ${data['price']} / Night'),
+                                                      '\MAD ${data['price']} / Night'),
                                                   SizedBox(
                                                     width: 15,
                                                   ),

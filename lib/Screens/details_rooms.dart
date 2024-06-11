@@ -150,7 +150,7 @@ class _detailsRoomsState extends State<detailsRooms> {
                                   Row(
                                     children: [
                                       Text(
-                                          '\$ ${widget.dataList['price']} / Night'),
+                                          '\MAD ${widget.dataList['price']} / Night'),
                                       const SizedBox(
                                         width: 15,
                                       ),

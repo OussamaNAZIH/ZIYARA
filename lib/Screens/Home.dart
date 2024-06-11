@@ -57,18 +57,18 @@ class _HomeState extends State<Home> {
   CollectionReference Hotelref =
       FirebaseFirestore.instance.collection("hotels");
 
- getData() async {
-  var responsebody = await Hotelref.orderBy('rating', descending: true).get();
-  if (mounted) {
-    setState(() {
-      hotels = responsebody.docs.map((doc) => doc.data()).toList();
-      isLoading = false;
-    });
+  getData() async {
+    var responsebody = await Hotelref.orderBy('rating', descending: true).get();
+    if (mounted) {
+      setState(() {
+        hotels = responsebody.docs.map((doc) => doc.data()).toList();
+        isLoading = false;
+      });
 
-    // Ajoutez cette ligne pour vérifier les données récupérées
-    print("Données récupérées: $hotels");
+      // Ajoutez cette ligne pour vérifier les données récupérées
+      print("Données récupérées: $hotels");
+    }
   }
-}
 
   DateTime? startDate;
   DateTime? endDate;
@@ -342,6 +342,9 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+int calculateNumberOfNights(DateTime startDate, DateTime endDate) {
+  return endDate.difference(startDate).inDays;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -616,7 +619,7 @@ class _HomeState extends State<Home> {
                                               startDate != null &&
                                                       endDate != null
                                                   ? '${startDate!.day}/${startDate!.month}/${startDate!.year} - ${endDate!.day}/${endDate!.month}/${endDate!.year}'
-                                                  : 'Sélectionner une date',
+                                                  : 'Select date',
                                               style: TextStyle(
                                                 color: dateTextFieldEmpty
                                                     ? Colors.grey[500]
@@ -1483,40 +1486,7 @@ class _HomeState extends State<Home> {
   Widget buildHotelCard2(int index) {
     final nearby = nearbys[index];
     return InkWell(
-      onTap: () {
-        if (startDate == null || endDate == null) {
-          _showDateErrorSnackBar();
-        } else {
-          final selectedProvider =
-              Provider.of<SelectedProvider>(context, listen: false);
-
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => DetailsScreen(
-                    startyear: startyear,
-                    endyear: endyear,
-                    dataList: nearby,
-                    hotels: nearby,
-                    startday: startday,
-                    startmonth: startmonth,
-                    endday: endday,
-                    endmonth: endmonth,
-                    rooms: selectedProvider.rooms,
-                    datedebut: startDate,
-                    datefin: endDate,
-                    Children: selectedProvider.children,
-                    Adults: selectedProvider.adults,
-                    roommin: (((context.read<SelectedProvider>().adults +
-                                    context
-                                        .read<SelectedProvider>()
-                                        .children) ~/
-                                2) +
-                            ((context.read<SelectedProvider>().adults +
-                                    context.read<SelectedProvider>().children) %
-                                2))
-                        .toInt(),
-                  )));
-        }
-      },
+      onTap: () {},
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[100],
@@ -1583,13 +1553,13 @@ class _HomeState extends State<Home> {
                     ),
                     Row(
                       children: [
-                        Text('\$${nearby.price} / Night'),
+                        Text('\MAD ${nearby.price} Night'),
                         SizedBox(
-                          width: 15,
+                          width: 8,
                         ),
                         Text('⭐${nearby.rating.toStringAsFixed(1)} '),
                         SizedBox(
-                          width: 15,
+                          width: 8,
                         ),
                         Text(
                           '${_calculateDistance(currentPosition!.latitude, currentPosition!.longitude, nearby.latitude, nearby.longitude).toStringAsFixed(2)} km',
@@ -1610,3 +1580,11 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
+
+
+
+
+
+
+

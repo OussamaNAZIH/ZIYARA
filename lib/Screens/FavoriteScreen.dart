@@ -195,7 +195,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             child: Row(
                               children: [
                                 Text(
-                                  "\$${data['price']}",
+                                  "\MAD ${data['price']}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 20,
@@ -206,7 +206,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                   width: 5,
                                 ),
                                 Text(
-                                  "\$${data['price'] + data['discount']}",
+                                  "\MAD ${data['price'] + data['discount']}",
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 12,
