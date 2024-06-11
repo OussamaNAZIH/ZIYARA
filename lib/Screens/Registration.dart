@@ -31,7 +31,7 @@ class _RegistrationState extends State<Registration> {
           // Ajoutez d'autres champs d'utilisateur si nécessaire
           "username": _userController.text.trim(),
           "usergmail": _mailController.text.trim(),
-          "userprofile" : "",
+          "userprofile": "",
         });
 
         print("Utilisateur ajouté avec l'ID utilisateur: $userId");
@@ -404,39 +404,11 @@ class _RegistrationState extends State<Registration> {
                   const SizedBox(
                     height: 15,
                   ),
-                  Center(
-                    child: Text(
-                      'Or using other method',
-                      style: TextStyle(color: Colors.grey[500]),
-                    ),
-                  ),
+
                   const SizedBox(
                     height: 20,
                   ),
 
-                  InkWell(
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'images/1199414.png',
-                            height: 50,
-                            width: 50,
-                          ),
-                          // const SizedBox(
-                          //   width: 20,
-                          // ),
-                          Image.asset(
-                            'images/Facebook.png',
-                            height: 95,
-                            width: 95,
-                          ),
-                        ]),
-                  ),
-
-                  const SizedBox(
-                    height: 15,
-                  ),
                   Container(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -447,7 +419,7 @@ class _RegistrationState extends State<Registration> {
                         ),
                         InkWell(
                           onTap: () {
-                           Navigator.pushReplacement(
+                            Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => const Login()));

@@ -48,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List _allResults = [];
   List _Results = [];
   int minPrice = 0;
-  int maxPrice = 7000;
+  int maxPrice = 5000;
   double minRating = 0;
   double maxRating = 5;
   bool isLoading = true;
@@ -333,7 +333,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                         "\MAD ${data['price']}",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 20,
+                                          fontSize: 15,
                                           color: Color.fromARGB(255, 0, 0, 0),
                                         ),
                                       ),
@@ -386,7 +386,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             fontSize: 18.0, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '\MAD $minPrice - \$$maxPrice',
+                        '\MAD $minPrice - \MAD $maxPrice',
                         style: const TextStyle(fontSize: 16.0),
                       ),
                     ],
@@ -396,7 +396,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     values:
                         RangeValues(minPrice.toDouble(), maxPrice.toDouble()),
                     min: 0,
-                    max: 1000,
+                    max: 5000,
                     divisions: 20,
                     // labels: RangeLabels('\$$minPrice', '\$$maxPrice'),
                     onChanged: (RangeValues values) {

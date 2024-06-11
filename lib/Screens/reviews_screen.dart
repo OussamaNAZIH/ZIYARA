@@ -48,35 +48,25 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     }
   }
 
-  Future<void> getData() async {
-    var responsebody =
-        await Myreviewsref.where('userid', isEqualTo: userId).get();
-    for (var element in responsebody.docs) {
-      setState(() {
-        Myreviews.add(element.data());
-        isLoading = false;
-      });
-    }
+ Future<void> updateHotelRating(String hotelId, double newRating) async {
+  DocumentReference hotelDoc = hotelsRef.doc(hotelId);
+  DocumentSnapshot hotelSnapshot = await hotelDoc.get();
+
+  if (hotelSnapshot.exists) {
+    double currentRating = hotelSnapshot['rating'].toDouble(); // Casting to double
+    int ratingCount = hotelSnapshot['reviews'];
+
+    double updatedRating =
+        ((currentRating * ratingCount) + newRating) / (ratingCount + 1);
+    int updatedRatingCount = ratingCount + 1;
+
+    await hotelDoc.update({
+      'rating': updatedRating,
+      'reviews': updatedRatingCount,
+    });
   }
+}
 
-  Future<void> updateHotelRating(String hotelId, double newRating) async {
-    DocumentReference hotelDoc = hotelsRef.doc(hotelId);
-    DocumentSnapshot hotelSnapshot = await hotelDoc.get();
-
-    if (hotelSnapshot.exists) {
-      double currentRating = hotelSnapshot['rating'];
-      int ratingCount = hotelSnapshot['reviews'];
-
-      double updatedRating =
-          ((currentRating * ratingCount) + newRating) / (ratingCount + 1);
-      int updatedRatingCount = ratingCount + 1;
-
-      await hotelDoc.update({
-        'rating': updatedRating,
-        'reviews': updatedRatingCount,
-      });
-    }
-  }
 
   final _formKey = GlobalKey<FormState>();
 
@@ -88,7 +78,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
   Future<void> initData() async {
     await getCurrentUser();
-    await getData();
   }
 
   @override
@@ -217,11 +206,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                           widget.dataList['hotelId'], rating);
 
                       _messageController.text = "";
-                      setState(() {
-                        Myreviews = [];
-                        isLoading = true;
-                      });
-                      getData();
                     }
                   },
                   child: Container(
@@ -241,62 +225,74 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   'My Reviews',
                   style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                 ),
-                if (isLoading)
-                  Center(child: CircularProgressIndicator())
-                else
-                  ListView.builder(
-                    itemCount: Myreviews.length,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      final Hotelreview = Myreviews[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('reviews')
+                      .where('userid', isEqualTo: userId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData) {
+                      return Center(child: Text('No reviews found.'));
+                    }
+                    var reviews = snapshot.data!.docs;
+                    return ListView.builder(
+                      itemCount: reviews.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var review = reviews[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                ),
+                                child: CircleAvatar(
+                                  backgroundImage: _userName != null
+                                      ? NetworkImage(
+                                          'https://ui-avatars.com/api/?name=${_userName}&font-size=0.36&color=233467&background=random',
+                                        )
+                                      : null,
+                                ),
                               ),
-                              child: CircleAvatar(
-                                backgroundImage: _userName != null
-                                    ? NetworkImage(
-                                        'https://ui-avatars.com/api/?name=${_userName}&font-size=0.36&color=233467&background=random',
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            SizedBox(width: 15),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    Hotelreview['username'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold,
+                              SizedBox(width: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      review['username'] ?? '',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    Hotelreview['messege'] ?? '',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
+                                    Text(
+                                      review['messege'] ?? '',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      softWrap: true,
                                     ),
-                                    softWrap: true,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(
-                                '⭐ ${Hotelreview['rating'].toStringAsFixed(1) ?? ''}'),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              Text(
+                                  '⭐ ${review['rating'].toStringAsFixed(1) ?? ''}'),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           ),

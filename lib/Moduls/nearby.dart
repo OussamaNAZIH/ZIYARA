@@ -284,7 +284,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
                   ),
                 ),
                 const SizedBox(
-                  width: 10,
+                  width: 5,
                 ),
                 Padding(
                   padding: EdgeInsets.all(2.0),
@@ -305,9 +305,9 @@ class _HotelListScreenState extends State<HotelListScreen> {
                       ),
                       Row(
                         children: [
-                          Text('\MAD ${nearby.price} / Night'),
+                          Text('\MAD ${nearby.price}/Night'),
                           SizedBox(
-                            width: 10,
+                            width: 5,
                           ),
                           Text('⭐${nearby.rating.toStringAsFixed(1)} '),
                           SizedBox(

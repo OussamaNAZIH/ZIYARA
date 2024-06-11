@@ -141,10 +141,10 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
                 child: Row(
                   children: [
                     Text(
-                      "\MAD ${HotelRecomended[i]['chamsp']['price']}",
+                      "\MAD ${HotelRecomended[i]['price']}",
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
-                        fontSize: 20,
+                        fontSize: 15,
                         color: Color.fromARGB(255, 0, 0, 0),
                       ),
                     ),
@@ -152,7 +152,7 @@ class _RecomendedHotelState extends State<RecomendedHotel> {
                       width: 5,
                     ),
                     Text(
-                      "\MAD ${HotelRecomended[i]['chamsp']['price']}",
+                      "\MAD ${HotelRecomended[i]['price'] + HotelRecomended[i]['discount']}",
                       style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 12,

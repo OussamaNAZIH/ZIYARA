@@ -155,7 +155,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
                                                   Text(
                                                       '\MAD ${data['price']} / Night'),
                                                   SizedBox(
-                                                    width: 15,
+                                                    width: 10,
                                                   ),
                                                   Text(
                                                       '⭐${data['rating'].toStringAsFixed(1)} (${data['reviews']})'),
